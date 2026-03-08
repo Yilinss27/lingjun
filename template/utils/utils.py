@@ -10,7 +10,7 @@ from typing import Dict, TYPE_CHECKING
 import pandas as pd
 
 if TYPE_CHECKING:
-    from config import Config
+    from template.configs.model_runtime_config import Config
 
 # ============================================================
 # 面板数据工具

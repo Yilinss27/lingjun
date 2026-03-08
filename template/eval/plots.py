@@ -12,6 +12,7 @@ eval/plots.py - 跨模型通用的可视化模块
 - 支持灵活的配置协议
 - 默认保存图片到 res/ 目录
 """
+# pyright: reportMissingTypeArgument=false, reportArgumentType=false, reportAttributeAccessIssue=false
 from __future__ import annotations
 
 from typing import Protocol, runtime_checkable, Optional, List, Dict, Union, cast
@@ -22,8 +23,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from eval.backtest import select_long_short_deciles
-from eval.metrics import ic_series_by_date
+from .backtest import select_long_short_deciles
+from .metrics import ic_series_by_date
 
 __all__ = [
     # 训练曲线

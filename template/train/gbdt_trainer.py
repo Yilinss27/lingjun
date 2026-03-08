@@ -7,8 +7,21 @@ from typing import Literal
 import numpy as np
 import pandas as pd
 
-from eval import pearson_ic_by_date, rank_ic_by_date
-from models.gbdt import LGBMModelWrapper, LGBMParams, XGBModelWrapper, XGBParams
+try:
+    from template.eval import pearson_ic_by_date, rank_ic_by_date
+    from template.models.gbdt import LGBMModelWrapper, LGBMParams, XGBModelWrapper, XGBParams
+except ImportError:
+    from importlib import import_module
+
+    _eval_mod = import_module("eval")
+    pearson_ic_by_date = getattr(_eval_mod, "pearson_ic_by_date")
+    rank_ic_by_date = getattr(_eval_mod, "rank_ic_by_date")
+
+    _gbdt_mod = import_module("models.gbdt")
+    LGBMModelWrapper = getattr(_gbdt_mod, "LGBMModelWrapper")
+    LGBMParams = getattr(_gbdt_mod, "LGBMParams")
+    XGBModelWrapper = getattr(_gbdt_mod, "XGBModelWrapper")
+    XGBParams = getattr(_gbdt_mod, "XGBParams")
 
 
 @dataclass

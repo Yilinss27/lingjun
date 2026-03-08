@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Callable
 
-from models.nn import (
+from .nn import (
     build_lstm_model,
     build_gru_model,
     build_attention_gru_model,

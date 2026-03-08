@@ -1,5 +1,5 @@
-from models.AutoformerModel import AutoformerModel, build_autoformer_model
-from models.Autoformer_encoderModel import Autoformer_encoderModel, build_autoformer_encoder_model
+from ..AutoformerModel import AutoformerModel, build_autoformer_model
+from ..Autoformer_encoderModel import Autoformer_encoderModel, build_autoformer_encoder_model
 
 __all__ = [
     "AutoformerModel",

@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+# pyright: reportConstantRedefinition=false
 from __future__ import annotations
 
 from typing import Protocol, cast
@@ -91,7 +92,13 @@ class AutoCorrelation(nn.Module):
         channel = values.shape[2]
         length = values.shape[3]
         # index init
-        init_index = torch.arange(length).unsqueeze(0).unsqueeze(0).unsqueeze(0).repeat(batch, head, channel, 1).cuda()
+        init_index = (
+            torch.arange(length, device=values.device)
+            .unsqueeze(0)
+            .unsqueeze(0)
+            .unsqueeze(0)
+            .repeat(batch, head, channel, 1)
+        )
         # find top k
         top_k = int(self.factor * math.log(length))
         mean_value = torch.mean(torch.mean(corr, dim=1), dim=1)
@@ -118,7 +125,13 @@ class AutoCorrelation(nn.Module):
         channel = values.shape[2]
         length = values.shape[3]
         # index init
-        init_index = torch.arange(length).unsqueeze(0).unsqueeze(0).unsqueeze(0).repeat(batch, head, channel, 1).cuda()
+        init_index = (
+            torch.arange(length, device=values.device)
+            .unsqueeze(0)
+            .unsqueeze(0)
+            .unsqueeze(0)
+            .repeat(batch, head, channel, 1)
+        )
         # find top k
         top_k = int(self.factor * math.log(length))
         weights = torch.topk(corr, top_k, dim=-1)[0]

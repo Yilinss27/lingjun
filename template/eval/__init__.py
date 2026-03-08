@@ -32,7 +32,7 @@ eval - 跨模型通用的评估模块
 # ============================================================
 # metrics 模块
 # ============================================================
-from eval.metrics import (
+from .metrics import (
     # 核心研究指标
     rank_ic_by_date,
     pearson_ic_by_date,
@@ -56,7 +56,7 @@ from eval.metrics import (
 # ============================================================
 # backtest 模块
 # ============================================================
-from eval.backtest import (
+from .backtest import (
     # 核心回测函数
     backtest_decile_strategy,
     backtest_grouped_returns,
@@ -74,7 +74,7 @@ from eval.backtest import (
 # ============================================================
 # plots 模块
 # ============================================================
-from eval.plots import (
+from .plots import (
     # 训练曲线
     plot_training_curve,
     plot_training_metrics,
@@ -90,7 +90,7 @@ from eval.plots import (
 # ============================================================
 # factor_backtest 模块
 # ============================================================
-from eval.factor_backtest import (
+from .factor_backtest import (
     backtest_single_factor,
     backtest_all_factors,
     calc_factor_ic,
@@ -102,7 +102,7 @@ from eval.factor_backtest import (
 # ============================================================
 # runner 模块
 # ============================================================
-from eval.runner import (
+from .runner import (
     run_evaluation,
     EvalReport,
 )
@@ -110,7 +110,7 @@ from eval.runner import (
 # ============================================================
 # schema 模块
 # ============================================================
-from eval.schema import (
+from .schema import (
     require_columns,
     ensure_pred_df,
     ensure_score_return_df,
@@ -123,7 +123,7 @@ from eval.schema import (
 # ============================================================
 # experiment_log 模块
 # ============================================================
-from eval.experiment_log import (
+from .experiment_log import (
     # 核心记录函数
     log_experiment_results,
     # 高级功能
@@ -135,7 +135,7 @@ from eval.experiment_log import (
     # 配置协议
     ExperimentConfig,
 )
-from eval.reporting import save_json_report, log_metrics_bundle
+from .reporting import save_json_report, log_metrics_bundle
 
 __all__ = [
     # === metrics ===

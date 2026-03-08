@@ -18,6 +18,27 @@ def build_nn_samples_from_panel(
     train_end: object,
     val_end: object,
 ) -> dict[str, dict[str, object]]:
+    """
+    根据面板数据构建神经网络训练样本，支持滑动窗口特征序列的生成，并按日期分割为train/val/test集合。
+
+    参数:
+        frame: 原始面板型数据（DataFrame），包含特征、标签及分组信息；
+        feature_cols: 用作输入的特征列名序列；
+        label_col: 标签列名；
+        id_col: 个体ID列名（如股票代码）；
+        date_col: 日期列名（可与time_col配合实现更细粒度时序）；
+        time_col: 可选，时间字段（如分钟）；
+        lookback: 滑窗长度；
+        train_end, val_end: 训练/验证集的日期边界。
+    
+    返回:
+        dict，键为"train"、"val"、"test"，值均为dict，各包含
+          X: shape=(N, lookback, F)，特征窗口数组
+          id: shape=(N,)，整数ID
+          y: shape=(N,)，标签
+          date: shape=(N,)，窗口末端的日期
+          index: shape=(N,)，原始ID（如股票代码）
+    """
     sort_cols = [date_col]
     if time_col and time_col in frame.columns:
         sort_cols.append(time_col)

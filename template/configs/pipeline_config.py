@@ -4,10 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-try:
-    from template.predata.parquet_adapter import LargeParquetConfig
-except ImportError:
-    from predata.parquet_adapter import LargeParquetConfig
+from template.data.parquet_adapter import LargeParquetConfig
 
 
 @dataclass
@@ -17,17 +14,19 @@ class DataConfig:
     label_col: str = "LabelA"
     id_cols: tuple[str, ...] = ("stockid", "dateid", "timeid", "exchangeid")
     date_col: str = "dateid"
+    # feature_mode参数用于指定特征选择模式，具体含义如下：
+    # "all"：使用所有可用特征; "no_missing"：只使用无缺失值的特征; "top_ic"：使用IC（信息系数）排名前列的特征;"custom"：使用用户自定义的特征列表（custom_features字段给出）
     feature_mode: Literal["all", "no_missing", "top_ic", "custom"] = "no_missing"
     custom_features: list[str] = field(default_factory=list)
 
     train_ratio: float = 0.70
     val_ratio: float = 0.15
 
-    max_train_rows: int | None = 3_000_000
-    max_test_rows: int | None = None
-    batch_size: int = 200_000
-    row_group_stride: int = 1
-    row_group_offset: int = 0
+    max_train_rows: int | None = None    # 训练集最多读取的行数，None表示不限制
+    max_test_rows: int | None = None          # 测试集最多读取的行数，None表示不限制
+    batch_size: int = 200_000                 # 读取数据时每批次的最大行数
+    row_group_stride: int = 1                 # parquet row group 步长度，等于1表示每次加载一个row group
+    row_group_offset: int = 0                 # 读取parquet时跳过前多少个row group
 
     def to_large_parquet_config(self) -> LargeParquetConfig:
         return LargeParquetConfig(

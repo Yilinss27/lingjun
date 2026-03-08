@@ -36,7 +36,7 @@ from .losses import get_loss_fn
 from eval import mse_np, mae_np, rank_ic_by_date, pearson_ic_by_date
 
 if TYPE_CHECKING:
-    from config import Config
+    from template.configs.model_runtime_config import Config
 
 
 # ============================================================

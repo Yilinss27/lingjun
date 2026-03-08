@@ -1,4 +1,4 @@
-# pyright: reportMissingImports=false, reportArgumentType=false, reportMissingTypeArgument=false
+# pyright: reportMissingImports=false, reportArgumentType=false, reportMissingTypeArgument=false, reportCallIssue=false
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -8,7 +8,7 @@ import pickle
 import numpy as np
 import lightgbm as lgb
 
-from utils import get_lgbm_seed_params
+from template.utils import get_lgbm_seed_params
 
 
 @dataclass

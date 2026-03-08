@@ -2,12 +2,14 @@
 GRU 模型板块
 """
 
+# pyright: reportOptionalCall=false
+
 from __future__ import annotations
 
 import torch
 import torch.nn as nn
 
-from config import Config
+from template.configs.model_runtime_config import Config
 
 
 class GRUWithIndexEmbedding(nn.Module):

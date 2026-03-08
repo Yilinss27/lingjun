@@ -5,8 +5,21 @@ from pathlib import Path
 import json
 from typing import Any, cast
 
-from eval.experiment_log import ExperimentConfig, log_experiment_full, log_experiment_full_csv
+from .experiment_log import ExperimentConfig, log_experiment_full, log_experiment_full_csv
 
+"""
+eval/reporting.py - 实验报告与日志的统一输出模块
+
+功能说明:
+- 提供实验评估结果的持久化、保存与日志功能
+- 支持保存 JSON 报告、实验日志与 CSV 完整记录
+- 集成 experiment_log 日志工具
+- 与 EvalReport、log_metrics_bundle 等通用评估流程协同使用
+
+设计原则:
+- 面向多模型实验结果输出
+- 保持接口代码简洁、类型清晰、目录结构清楚
+"""
 
 def save_json_report(path: str, report: dict[str, Any]) -> str:
     out = Path(path)

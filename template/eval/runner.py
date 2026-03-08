@@ -4,26 +4,26 @@ eval/runner.py - 一站式评估管线
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 import pandas as pd
 
-from eval.backtest import (
+from .backtest import (
     BacktestConfig,
     backtest_decile_strategy,
     backtest_grouped_returns,
     compute_backtest_summary,
     compute_long_short_metrics,
 )
-from eval.experiment_log import ExperimentConfig, log_experiment_full, log_experiment_full_csv
-from eval.metrics import (
+from .experiment_log import ExperimentConfig, log_experiment_full, log_experiment_full_csv
+from .metrics import (
     ic_series_by_date,
     mae_np,
     mse_np,
     pearson_ic_by_date,
     rank_ic_by_date,
 )
-from eval.plots import plot_backtest_results, plot_ic_series, plot_long_short_curve
-from eval.schema import ensure_pred_df, require_columns
+from .plots import plot_backtest_results, plot_ic_series, plot_long_short_curve
+from .schema import ensure_pred_df, require_columns
 
 
 @dataclass
@@ -113,7 +113,7 @@ def run_evaluation(
         backtest_results = backtest_decile_strategy(
             pred_df,
             price_df,
-            price_cfg, #type:ignore
+            cast(BacktestConfig, price_cfg),
             n_groups=n_groups,
             pred_col=score_col,
             index_col=id_col,

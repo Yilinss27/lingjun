@@ -19,13 +19,13 @@ CheckpointManager: 模型检查点管理器
 """
 from __future__ import annotations
 import copy
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, cast
 
 import torch
 import torch.nn as nn
 
 if TYPE_CHECKING:
-    from config import Config
+    from template.configs.model_runtime_config import Config
 
 
 class CheckpointManager:
@@ -83,7 +83,7 @@ class CheckpointManager:
             self.metric_ema = value
         else:
             self.metric_ema = self.ema_alpha * value + (1 - self.ema_alpha) * self.metric_ema
-        return self.metric_ema
+        return cast(float, self.metric_ema)
     
     def step(self, epoch: int, model: nn.Module, metrics: Dict[str, float]) -> Tuple[bool, bool]:
         """每个epoch结束时调用，判断是否保存模型和是否早停

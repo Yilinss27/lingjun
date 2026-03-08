@@ -10,13 +10,16 @@ from typing import Literal, cast
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_TEMPLATE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_PROJECT_ROOT = os.path.dirname(_TEMPLATE_DIR)
+sys.path.insert(0, _PROJECT_ROOT)
+sys.path.insert(0, _TEMPLATE_DIR)
 
-from data.io_parquet import iter_test_batches, stream_predictions_to_parquet
-from data.preprocess import PreprocessorState, transform_features
-from models.gbdt.lgbm_model import LGBMModelWrapper
-from models.gbdt.xgb_model import XGBModelWrapper
-from predata.parquet_adapter import LargeParquetConfig
+from template.data.io_parquet import iter_test_batches, stream_predictions_to_parquet
+from template.data.preprocess import PreprocessorState, transform_features
+from template.models.gbdt.lgbm_model import LGBMModelWrapper
+from template.models.gbdt.xgb_model import XGBModelWrapper
+from template.data.parquet_adapter import LargeParquetConfig
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -86,7 +89,7 @@ def main() -> None:
 
     def _iter_batches():
         for batch in iter_test_batches(large_cfg, feature_cols, batch_size=int(large_cfg.batch_size)):
-            yield transform_features(batch, feature_cols, preprocess_state)
+            yield transform_features(batch, feature_cols, preprocess_state, copy_frame=False)
 
     out = stream_predictions_to_parquet(
         output_path=args.output_path,

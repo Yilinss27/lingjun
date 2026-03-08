@@ -8,22 +8,28 @@ from pathlib import Path
 import time
 import os
 import sys
+from typing import cast
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_TEMPLATE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_PROJECT_ROOT = os.path.dirname(_TEMPLATE_DIR)
+sys.path.insert(0, _PROJECT_ROOT)
+sys.path.insert(0, _TEMPLATE_DIR)
 
 import pandas as pd
+import numpy as np
 import torch
+import torch.nn as nn
 
-from config import Config
-from configs.presets import make_baseline_lgbm, make_baseline_xgb, make_baseline_nn
-from data.io_parquet import load_train_panel, iter_test_batches, stream_predictions_to_parquet
-from data.split import split_frame_by_date
-from data.preprocess import fit_transform_splits, transform_features
-from data.nn_samples import build_nn_samples_from_panel
-from eval import save_json_report
-from models import build_nn_model
-from train import GBDTTrainer, TorchTrainer, get_torch_device
-from utils import init_reproducibility
+from template.configs.model_runtime_config import Config
+from template.configs.presets import make_baseline_lgbm, make_baseline_xgb, make_baseline_nn
+from template.data.io_parquet import load_train_panel, iter_test_batches, stream_predictions_to_parquet
+from template.data.split import split_frame_by_date
+from template.data.preprocess import fit_transform_splits, transform_features
+from template.data.nn_samples import build_nn_samples_from_panel
+from template.eval import save_json_report
+from template.models import build_nn_model
+from template.train import GBDTTrainer, TorchTrainer, get_torch_device
+from template.utils import init_reproducibility
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -219,8 +225,11 @@ def _train_nn(cfg) -> dict:
     num_indices = int(panel_t[cfg.data.id_cols[0]].nunique())
     num_features = len(feature_cols)
     model = build_nn_model(cfg.nn.model_name, nn_cfg, num_indices, num_features)
+    model = cast(nn.Module, model)
     device = get_torch_device(nn_cfg)
     trainer = TorchTrainer(model, nn_cfg, device)
+
+    samples = cast(dict[str, dict[str, np.ndarray]], samples)
 
     history = trainer.fit(samples["train"], samples["val"])
     metrics = trainer.evaluate(samples["test"])

@@ -1,5 +1,5 @@
-from models.TransformerModel import TransformerModel, build_transformer_model
-from models.Transformer_Enc import TransformerEncModel, build_transformer_enc_model
+from ..TransformerModel import TransformerModel, build_transformer_model
+from ..Transformer_Enc import TransformerEncModel, build_transformer_enc_model
 
 __all__ = [
     "TransformerModel",

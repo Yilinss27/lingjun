@@ -1,3 +1,11 @@
+'''
+Author: Young yyyao75@163.com
+Date: 2026-03-05 19:57:01
+LastEditors: Young yyyao75@163.com
+LastEditTime: 2026-03-08 14:42:06
+FilePath: \lingjun\template\data\io_parquet.py
+Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+'''
 # pyright: reportMissingImports=false
 from __future__ import annotations
 
@@ -10,18 +18,16 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-try:
-    from template.predata.parquet_adapter import (
-        LargeParquetConfig,
-        iter_parquet_batches,
-        prepare_large_parquet_train_frame,
-    )
-except ImportError:
-    from predata.parquet_adapter import (
-        LargeParquetConfig,
-        iter_parquet_batches,
-        prepare_large_parquet_train_frame,
-    )
+from template.data.parquet_adapter import (
+    LargeParquetConfig,
+    iter_parquet_batches,
+    prepare_large_parquet_train_frame,
+)
+# 本文件用于封装针对大型Parquet文件的数据读取与预处理相关函数，包括：
+# - 加载训练面板数据（load_train_panel）
+# - 按指定批次迭代读取测试数据（iter_test_batches）
+# - 用生成器流式写出预测结果到Parquet文件（stream_predictions_to_parquet）
+# 依赖template.data.parquet_adapter中的配置与基础工具，支撑大规模数据集内存友好型批处理。
 
 
 @dataclass

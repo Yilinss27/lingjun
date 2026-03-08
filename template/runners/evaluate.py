@@ -8,13 +8,16 @@ import json
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_TEMPLATE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_PROJECT_ROOT = os.path.dirname(_TEMPLATE_DIR)
+sys.path.insert(0, _PROJECT_ROOT)
+sys.path.insert(0, _TEMPLATE_DIR)
 
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
-from eval import pearson_ic_by_date, rank_ic_by_date, save_json_report
+from template.eval import pearson_ic_by_date, rank_ic_by_date, save_json_report
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -34,7 +37,14 @@ def main() -> None:
     all_cols = list(pf.schema.names)
 
     if args.target_col not in all_cols:
-        report = {"rows": int(pf.metadata.num_rows), "columns": all_cols, "note": "target column not found"}
+        report = {
+            "rows": int(pf.metadata.num_rows),
+            "columns": all_cols,
+            "note": (
+                f"target column '{args.target_col}' not found; this is expected for test predictions. "
+                "Use a holdout/validation prediction parquet containing both score and target columns for IC/MSE evaluation."
+            ),
+        }
         print(json.dumps(report, ensure_ascii=False, indent=2))
         return
 

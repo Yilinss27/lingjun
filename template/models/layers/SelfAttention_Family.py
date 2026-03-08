@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 from math import sqrt
-from utils.masking import TriangularCausalMask, ProbMask
+from template.utils.masking import TriangularCausalMask, ProbMask
 try:
     from reformer_pytorch import LSHSelfAttention  # type: ignore[import-untyped]
 except ImportError:

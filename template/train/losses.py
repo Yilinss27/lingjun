@@ -20,7 +20,7 @@ import torch
 import torch.nn.functional as F
 
 if TYPE_CHECKING:
-    from config import Config
+    from template.configs.model_runtime_config import Config
 
 
 # ============================================================

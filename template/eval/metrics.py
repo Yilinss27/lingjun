@@ -12,13 +12,14 @@ eval/metrics.py - 跨模型通用的评估指标模块
 - 可用于任意模型的评估，不限于 LSTM
 - by_date 版本的 IC 指标最具研究价值，推荐优先使用
 """
+# pyright: reportMissingTypeArgument=false, reportArgumentType=false
 from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 import numpy as np
 import pandas as pd
 
-from eval.schema import ensure_pred_df, require_columns
+from .schema import ensure_pred_df, require_columns
 
 __all__ = [
     # 核心研究指标（按日期分组，最强泛化能力，推荐优先使用）

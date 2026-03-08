@@ -7,9 +7,9 @@ from typing import Dict, List, Optional
 import os
 import pandas as pd
 
-from eval.backtest import backtest_grouped_returns, compute_long_short_metrics
-from eval.metrics import ic_series_by_date, ic_summary
-from eval.plots import plot_backtest_results, plot_long_short_curve, plot_ic_series
+from .backtest import backtest_grouped_returns, compute_long_short_metrics
+from .metrics import ic_series_by_date, ic_summary
+from .plots import plot_backtest_results, plot_long_short_curve, plot_ic_series
 
 
 def backtest_single_factor(
@@ -131,14 +131,16 @@ def evaluate_factor(
     return_col: str = "target",
     date_col: str = "date",
     plot_start_date: Optional[str] = None,
-) -> Dict[str, float]:
+) -> Dict[str, float | int | str]:
     """
     评估单个因子并绘制图表
     """
     os.makedirs(save_dir, exist_ok=True)
     ic_df = calc_factor_ic(df, factor_col, return_col, date_col)
-    summary = calc_factor_summary(backtest_result, ic_df)
-    summary["因子"] = factor_col
+    summary: Dict[str, float | int | str] = {
+        "因子": factor_col,
+        **calc_factor_summary(backtest_result, ic_df),
+    }
 
     if len(backtest_result) > 0:
         plot_backtest_results(
@@ -195,7 +197,7 @@ def evaluate_all_factors(
     """
     save_dir = save_dir or "res/factor_backtest"
     os.makedirs(save_dir, exist_ok=True)
-    summaries = []
+    summaries: list[Dict[str, float | int | str]] = []
     factors_to_eval = factor_cols[:top_n] if top_n else factor_cols
 
     total = len(factors_to_eval)

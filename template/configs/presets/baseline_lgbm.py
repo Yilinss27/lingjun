@@ -1,10 +1,7 @@
 # pyright: reportMissingImports=false
 from __future__ import annotations
 
-try:
-    from template.configs.pipeline_config import PipelineConfig
-except ImportError:
-    from configs.pipeline_config import PipelineConfig
+from template.configs.pipeline_config import PipelineConfig
 
 
 def make_baseline_lgbm() -> PipelineConfig:
