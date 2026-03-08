@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections import deque
+from collections.abc import Iterable, Sequence
 
 import numpy as np
 import pandas as pd
@@ -105,3 +106,115 @@ def build_nn_samples_from_panel(
         }
 
     return {"train": _pack("train"), "val": _pack("val"), "test": _pack("test")}
+
+
+def build_nn_samples_streaming(
+    batch_iter: Iterable[pd.DataFrame],
+    feature_cols: Sequence[str],
+    *,
+    label_col: str,
+    id_col: str,
+    date_col: str,
+    time_col: str | None,
+    lookback: int,
+    train_end: object,
+    val_end: object,
+) -> tuple[dict[str, dict[str, np.ndarray]], dict[object, int], int]:
+    """Build NN sliding-window samples by streaming pre-transformed batches.
+
+    Unlike ``build_nn_samples_from_panel`` this function never needs the full
+    panel in memory.  It maintains per-stock ring buffers of length *lookback*
+    and emits a window as soon as a buffer is full.
+
+    Returns
+    -------
+    samples : dict  ``{"train": {...}, "val": {...}, "test": {...}}``
+    id_map  : dict  raw stock id -> integer index
+    num_ids : int   total unique stock ids seen
+    """
+    sort_cols = [date_col]
+    if time_col:
+        sort_cols.append(time_col)
+    sort_cols.append(id_col)
+
+    # Per-stock ring buffers: sid -> deque of (x_row, y, date, is_invalid)
+    buffers: dict[object, deque] = {}
+    nan_counts: dict[object, int] = {}
+    seen_ids: set = set()
+
+    buckets: dict[str, dict[str, list]] = {
+        "train": {"X": [], "id": [], "y": [], "date": [], "index": []},
+        "val":   {"X": [], "id": [], "y": [], "date": [], "index": []},
+        "test":  {"X": [], "id": [], "y": [], "date": [], "index": []},
+    }
+
+    for batch_df in batch_iter:
+        if len(batch_df) == 0:
+            continue
+        avail = [c for c in sort_cols if c in batch_df.columns]
+        if avail:
+            batch_df = batch_df.sort_values(avail).reset_index(drop=True)
+
+        feat = batch_df[list(feature_cols)].to_numpy(dtype=np.float32)
+        ids  = batch_df[id_col].to_numpy()
+        dates = batch_df[date_col].to_numpy()
+        labels = batch_df[label_col].to_numpy(dtype=np.float32)
+
+        for i in range(len(batch_df)):
+            sid = ids[i]
+            seen_ids.add(sid)
+            x_row = feat[i]
+            y_val = labels[i]
+            d_val = dates[i]
+
+            bad = bool(np.any(np.isnan(x_row)) or np.any(np.isinf(x_row))
+                       or np.isnan(y_val) or np.isinf(y_val))
+
+            if sid not in buffers:
+                buffers[sid] = deque(maxlen=lookback)
+                nan_counts[sid] = 0
+
+            buf = buffers[sid]
+            if len(buf) == lookback:
+                old_bad = buf[0][3]
+                if old_bad:
+                    nan_counts[sid] -= 1
+
+            buf.append((x_row, y_val, d_val, bad))
+            if bad:
+                nan_counts[sid] += 1
+
+            if len(buf) == lookback and nan_counts[sid] == 0:
+                x_win = np.stack([e[0] for e in buf], axis=0)
+                split = "train" if d_val <= train_end else ("val" if d_val <= val_end else "test")
+                buckets[split]["X"].append(x_win)
+                buckets[split]["id"].append(sid)
+                buckets[split]["y"].append(float(y_val))
+                buckets[split]["date"].append(d_val)
+                buckets[split]["index"].append(sid)
+
+    id_map: dict[object, int] = {v: i for i, v in enumerate(sorted(seen_ids))}
+    num_ids = len(id_map)
+    n_feat = len(feature_cols)
+
+    def _pack(split: str) -> dict[str, np.ndarray]:
+        data = buckets[split]
+        n = len(data["X"])
+        if n == 0:
+            return {
+                "X": np.zeros((0, lookback, n_feat), dtype=np.float32),
+                "id": np.zeros((0,), dtype=np.int64),
+                "y": np.zeros((0,), dtype=np.float32),
+                "date": np.asarray([], dtype=object),
+                "index": np.asarray([], dtype=object),
+            }
+        return {
+            "X": np.asarray(data["X"], dtype=np.float32),
+            "id": np.asarray([id_map[s] for s in data["id"]], dtype=np.int64),
+            "y": np.asarray(data["y"], dtype=np.float32),
+            "date": np.asarray(data["date"], dtype=object),
+            "index": np.asarray(data["index"], dtype=object),
+        }
+
+    samples = {"train": _pack("train"), "val": _pack("val"), "test": _pack("test")}
+    return samples, id_map, num_ids

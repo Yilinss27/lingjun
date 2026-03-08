@@ -51,7 +51,9 @@ class DataConfig:
 class PreprocessConfig:
     fillna_strategy: Literal["none", "zero", "median"] = "none"
     standardize: bool = False
+    standardize_mode: Literal["none", "global", "cross_section", "date", "time_rolling"] = "none"
     clip_quantile: float | None = None
+    z_window: int = 60
 
 
 @dataclass
@@ -72,20 +74,44 @@ class RunnerConfig:
 
 @dataclass
 class NNConfig:
+    # ── 模型结构 ──
     model_name: str = "lstm"
     lookback: int = 32
     emb_dim: int = 0
     hidden: int = 128
     layers: int = 2
     drop_out: float = 0.2
+
+    # ── 损失 ──
     loss_name: str = "mse"
+    huber_delta: float = 1.0
+    tau: float = 0.9
+    softrank_tau: float = 1.0
+
+    # ── 优化器 / 训练 ──
     lr: float = 1e-3
     weight_decay: float = 1e-5
     batch_size: int = 256
     epochs: int = 12
+
+    # ── 设备 / 性能 ──
     device: Literal["auto", "cpu", "gpu"] = "auto"
     use_amp: bool = False
+    amp_dtype: str = "float16"
+    compile_model: bool = False
+    compile_mode: str = "reduce-overhead"
+    dataloader_workers: int = 0
+    prefetch_factor: int = 2
+    pin_memory: bool = False
+
+    # ── Checkpoint / 早停 ──
     checkpoint_enabled: bool = False
+    checkpoint_metric: str = "val_loss"
+    checkpoint_strategy: str = "combined"
+    checkpoint_patience: int = 16
+    checkpoint_warmup_epochs: int = 16
+    checkpoint_min_delta: float = 0.0
+    checkpoint_ema_alpha: float = 0.0
 
 
 @dataclass

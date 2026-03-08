@@ -7,7 +7,6 @@ from template.configs.pipeline_config import PipelineConfig
 def make_baseline_lgbm() -> PipelineConfig:
     cfg = PipelineConfig()
     cfg.model.family = "lgbm"
-    cfg.model.name = "lgbm"
     cfg.model.objective = "regression"
     cfg.model.params = {
         "learning_rate": 0.05,
@@ -24,5 +23,5 @@ def make_baseline_lgbm() -> PipelineConfig:
     }
     cfg.preprocess.fillna_strategy = "none"
     cfg.preprocess.standardize = False
-    cfg.runner.output_dir = "res/pipeline_lgbm"
+    cfg.runner.output_dir = "res/pipeline"
     return cfg

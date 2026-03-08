@@ -20,8 +20,11 @@ import pyarrow.parquet as pq
 
 from template.data.parquet_adapter import (
     LargeParquetConfig,
+    discover_factor_columns,
     iter_parquet_batches,
     prepare_large_parquet_train_frame,
+    select_feature_columns,
+    split_dates_by_ratio,
 )
 # 本文件用于封装针对大型Parquet文件的数据读取与预处理相关函数，包括：
 # - 加载训练面板数据（load_train_panel）
@@ -63,6 +66,41 @@ def iter_test_batches(
         row_group_offset=cfg.row_group_offset,
         max_rows=cfg.max_test_rows,
     )
+
+
+def scan_train_metadata(
+    cfg: LargeParquetConfig,
+) -> tuple[list[str], object, object]:
+    """Discover feature columns and date boundaries by scanning only metadata
+    and the date column — never loads the full training panel."""
+    all_features = discover_factor_columns(cfg.train_path)
+    feature_cols = select_feature_columns(
+        all_features, cfg.feature_mode, cfg.custom_features,
+    )
+
+    all_dates: set = set()
+    total_rows = 0
+    for batch in iter_parquet_batches(
+        parquet_path=cfg.train_path,
+        columns=[cfg.date_col],
+        batch_size=cfg.batch_size,
+        row_group_stride=cfg.row_group_stride,
+        row_group_offset=cfg.row_group_offset,
+        max_rows=cfg.max_train_rows,
+    ):
+        all_dates.update(batch[cfg.date_col].unique())
+        total_rows += len(batch)
+
+    unique_dates = sorted(all_dates)
+    if (cfg.max_train_rows is not None
+            and total_rows >= int(cfg.max_train_rows)
+            and len(unique_dates) > 3):
+        unique_dates = unique_dates[:-1]
+
+    train_end, val_end = split_dates_by_ratio(
+        unique_dates, cfg.train_ratio, cfg.val_ratio,
+    )
+    return feature_cols, train_end, val_end
 
 
 def stream_predictions_to_parquet(

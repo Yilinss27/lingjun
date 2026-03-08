@@ -7,12 +7,10 @@ from template.configs.pipeline_config import PipelineConfig
 def make_baseline_nn() -> PipelineConfig:
     cfg = PipelineConfig()
     cfg.model.family = "nn"
-    cfg.model.name = "nn"
     cfg.model.objective = "regression"
-    cfg.model.params = {}
     cfg.preprocess.fillna_strategy = "median"
     cfg.preprocess.standardize = True
-    cfg.runner.output_dir = "res/pipeline_nn"
+    cfg.runner.output_dir = "res/pipeline"
 
     cfg.nn.model_name = "lstm"
     cfg.nn.lookback = 32

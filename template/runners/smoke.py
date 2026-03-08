@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import os
 import sys
-import subprocess
 import shutil
 from pathlib import Path
 from typing import cast
@@ -25,11 +24,26 @@ import pandas as pd
 import torch
 import torch.nn as nn
 
-from template.configs.model_runtime_config import Config
+from template.configs.model_runtime_config import NNRuntimeConfig
+from template.configs.presets import make_baseline_lgbm, make_baseline_xgb, make_baseline_nn
 from template.models.registry import NN_MODEL_REGISTRY, build_nn_model
+from template.runners.train import run_train
 
 
 def _make_synthetic_data(root: Path, work_root: Path) -> tuple[Path, Path]:
+    """
+    生成用于 pipeline 冒烟测试的合成数据，包括训练集和测试集。
+    该函数会以指定结构创建 pandas DataFrame，
+    包含时间（dateid）、股票（stockid）、时间段（timeid）、特征（f0-f63）、标签（LabelA/B/C）。
+    再将不同区间切分为训练集和测试集，并分别保存为 parquet 文件。
+
+    Args:
+        root (Path): 模板根目录路径（暂未使用，预留参数）。
+        work_root (Path): 实验运行/输出路径，用于存储合成数据文件。
+
+    Returns:
+        tuple[Path, Path]: (训练数据 parquet 路径, 测试数据 parquet 路径)
+    """
     rng = np.random.default_rng(42)
     dates = np.arange(30, dtype=np.int32)
     stocks = np.arange(10, dtype=np.int32)
@@ -70,7 +84,7 @@ def _make_synthetic_data(root: Path, work_root: Path) -> tuple[Path, Path]:
 
 
 def _smoke_nn_builders() -> None:
-    cfg = Config(
+    cfg = NNRuntimeConfig(
         model_name="lstm",
         emb_dim=4,
         hidden=32,
@@ -104,60 +118,44 @@ def _smoke_nn_builders() -> None:
         raise RuntimeError("NN builder smoke failed: " + " | ".join(failures))
 
 
-def _run_cmd(cmd: list[str], cwd: Path) -> None:
-    proc = subprocess.run(cmd, cwd=str(cwd), check=False, text=True)
-    if proc.returncode != 0:
-        raise RuntimeError(f"Command failed ({proc.returncode}): {' '.join(cmd)}")
-
-
 def _smoke_runners(template_root: Path, train_path: Path, test_path: Path, work_root: Path) -> None:
     out_root = work_root / "smoke_out"
     out_root.mkdir(parents=True, exist_ok=True)
 
-    base = [
-        sys.executable,
-        "runners/train.py",
-        "--train-parquet",
-        str(train_path),
-        "--test-parquet",
-        str(test_path),
-        "--label-col",
-        "LabelA",
-        "--feature-mode",
-        "all",
-        "--max-train-rows",
-        "5000",
-        "--batch-size",
-        "1500",
-        "--predict-batch-size",
-        "1500",
-    ]
+    def _apply_smoke_data(cfg):
+        cfg.data.train_parquet_path = str(train_path)
+        cfg.data.test_parquet_path = str(test_path)
+        cfg.data.label_col = "LabelA"
+        cfg.data.feature_mode = "all"
+        cfg.data.max_train_rows = 5000
+        cfg.data.batch_size = 1500
+        cfg.runner.predict_batch_size = 1500
 
-    _run_cmd(base + ["--family", "lgbm", "--n-estimators", "30", "--output-dir", str(out_root / "lgbm"), "--no-save-test-pred"], template_root)
+    cfg_lgbm = make_baseline_lgbm()
+    _apply_smoke_data(cfg_lgbm)
+    cfg_lgbm.runner.output_dir = str(out_root / "lgbm")
+    cfg_lgbm.runner.save_test_pred = False
+    cfg_lgbm.model.params["n_estimators"] = 30
+    run_train(cfg_lgbm)
 
     try:
-        _run_cmd(base + ["--family", "xgb", "--n-estimators", "30", "--output-dir", str(out_root / "xgb"), "--no-save-test-pred"], template_root)
+        cfg_xgb = make_baseline_xgb()
+        _apply_smoke_data(cfg_xgb)
+        cfg_xgb.runner.output_dir = str(out_root / "xgb")
+        cfg_xgb.runner.save_test_pred = False
+        cfg_xgb.model.params["n_estimators"] = 30
+        run_train(cfg_xgb)
     except Exception as exc:
         print(f"[Smoke] xgb skipped/fail: {exc}")
 
-    _run_cmd(
-        base
-        + [
-            "--family",
-            "nn",
-            "--nn-model",
-            "lstm",
-            "--lookback",
-            "4",
-            "--nn-epochs",
-            "1",
-            "--nn-batch-size",
-            "64",
-            "--output-dir",
-            str(out_root / "nn"),
-        ],
-        template_root,
-    )
+    cfg_nn = make_baseline_nn()
+    _apply_smoke_data(cfg_nn)
+    cfg_nn.runner.output_dir = str(out_root / "nn")
+    cfg_nn.nn.model_name = "lstm"
+    cfg_nn.nn.lookback = 4
+    cfg_nn.nn.epochs = 1
+    cfg_nn.nn.batch_size = 64
+    run_train(cfg_nn)
 
 
 def main() -> None:

@@ -119,11 +119,15 @@ class GBDTTrainer:
         )
         mse = float(np.mean((pred - truth) ** 2))
         mae = float(np.mean(np.abs(pred - truth)))
+        ss_res = float(np.sum((truth - pred) ** 2))
+        ss_tot = float(np.sum((truth - np.mean(truth)) ** 2))
+        r2 = 1.0 - ss_res / ss_tot if ss_tot > 1e-15 else float("nan")
         ic = pearson_ic_by_date(pred_df, date_col="date", score_col="pred", target_col="y")
         rankic = rank_ic_by_date(pred_df, date_col="date", score_col="pred", target_col="y")
         return {
             "mse": mse,
             "mae": mae,
+            "r2": r2,
             "ic": float(ic),
             "rankic": float(rankic),
         }

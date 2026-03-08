@@ -51,7 +51,7 @@ class CheckpointManager:
         self.save_path = cfg.checkpoint_save_path
         
         # 判断指标方向：越大越好还是越小越好
-        self.higher_is_better = self.metric_name in ['val_rankic', 'val_ic']
+        self.higher_is_better = self.metric_name in ['val_rankic', 'val_ic', 'val_r2']
         
         # 状态变量
         self.best_metric: float = -float("inf") if self.higher_is_better else float("inf")

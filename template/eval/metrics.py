@@ -28,6 +28,7 @@ __all__ = [
     # 基础损失函数
     "mae_np",
     "mse_np",
+    "r2_score_np",
     "huber_loss_np",
     "quantile_loss_np",
     # 统一损失计算
@@ -214,6 +215,24 @@ def mae_np(a: np.ndarray, b: np.ndarray) -> float:
         float: MAE 值（越小越好）
     """
     return float(np.mean(np.abs(a - b)))
+
+
+def r2_score_np(pred: np.ndarray, y: np.ndarray) -> float:
+    """R-squared (coefficient of determination).
+
+    R^2 = 1 - SS_res / SS_tot, where
+    SS_res = sum((y - pred)^2), SS_tot = sum((y - mean(y))^2).
+    Perfect prediction gives 1.0; always-predicting-mean gives 0.0.
+    """
+    p = pred.flatten().astype(np.float64)
+    t = y.flatten().astype(np.float64)
+    if len(t) < 2:
+        return float("nan")
+    ss_res = float(np.sum((t - p) ** 2))
+    ss_tot = float(np.sum((t - np.mean(t)) ** 2))
+    if ss_tot < 1e-15:
+        return float("nan")
+    return 1.0 - ss_res / ss_tot
 
 
 def mse_np(a: np.ndarray, b: np.ndarray) -> float:

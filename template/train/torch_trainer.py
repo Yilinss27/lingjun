@@ -33,7 +33,7 @@ from torch.amp.grad_scaler import GradScaler
 
 from .checkpoint import CheckpointManager
 from .losses import get_loss_fn
-from eval import mse_np, mae_np, rank_ic_by_date, pearson_ic_by_date
+from eval import mse_np, mae_np, r2_score_np, rank_ic_by_date, pearson_ic_by_date
 
 if TYPE_CHECKING:
     from template.configs.model_runtime_config import Config
@@ -715,6 +715,7 @@ class TorchTrainer:
             'val_loss': [],
             'val_ic': [],
             'val_rankic': [],
+            'val_r2': [],
         }
     
     def fit(
@@ -796,12 +797,14 @@ class TorchTrainer:
             self.history['train_loss'].append(tr_loss)
             self.history['val_loss'].append(val_loss)
             
-            # 计算 IC/RankIC
+            # 计算 IC/RankIC/R^2
             val_df = predict_to_df(self.model, val_data, self.device)
             ric_val = rank_ic_by_date(val_df)
             ic_val = pearson_ic_by_date(val_df)
+            r2_val = r2_score_np(val_pred, val_y)
             self.history['val_ic'].append(ic_val)
             self.history['val_rankic'].append(ric_val)
+            self.history['val_r2'].append(r2_val)
             
             # 打印日志
             if verbose:
@@ -809,6 +812,7 @@ class TorchTrainer:
                       f"val_{self.cfg.loss_name}={val_loss:.6f}")
                 print(f"           val_mse={mse_np(val_pred, val_y):.6f}, "
                       f"val_mae={mae_np(val_pred, val_y):.6f}")
+                print(f"           val_r2={r2_val:.6f}")
                 print(f"           val_ic={ic_val:.4f}, val_rankic={ric_val:.4f}")
             
             # 检查点管理
@@ -818,6 +822,7 @@ class TorchTrainer:
                     'val_loss': val_loss,
                     'val_rankic': ric_val,
                     'val_ic': ic_val,
+                    'val_r2': r2_val,
                     'train_loss': tr_loss,
                 }
                 should_save, should_stop = self.ckpt_mgr.step(ep, self.model, epoch_metrics)
@@ -875,6 +880,7 @@ class TorchTrainer:
             'loss': loss,
             'mse': mse_np(pred, y),
             'mae': mae_np(pred, y),
+            'r2': r2_score_np(pred, y),
             'ic': pearson_ic_by_date(pred_df),
             'rankic': rank_ic_by_date(pred_df),
         }

@@ -1,4 +1,7 @@
-from .io_parquet import TrainPanelBundle, load_train_panel, iter_test_batches, stream_predictions_to_parquet
+from .io_parquet import (
+    TrainPanelBundle, load_train_panel, iter_test_batches,
+    stream_predictions_to_parquet, scan_train_metadata,
+)
 from .parquet_adapter import (
     LargeParquetConfig,
     NO_MISSING_FEATURES,
@@ -10,9 +13,12 @@ from .parquet_adapter import (
     prepare_large_parquet_train_frame,
     prepare_large_parquet_test_frame,
 )
-from .preprocess import PreprocessorState, fit_preprocessor, transform_features, fit_transform_splits
+from .preprocess import (
+    PreprocessorState, fit_preprocessor, transform_features,
+    fit_transform_splits, fit_preprocessor_streaming,
+)
 from .split import split_frame_by_date
-from .nn_samples import build_nn_samples_from_panel
+from .nn_samples import build_nn_samples_from_panel, build_nn_samples_streaming
 
 __all__ = [
     "TrainPanelBundle",
@@ -32,6 +38,9 @@ __all__ = [
     "fit_preprocessor",
     "transform_features",
     "fit_transform_splits",
+    "fit_preprocessor_streaming",
     "split_frame_by_date",
     "build_nn_samples_from_panel",
+    "build_nn_samples_streaming",
+    "scan_train_metadata",
 ]

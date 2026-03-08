@@ -39,6 +39,7 @@ from .metrics import (
     # 基础损失函数
     mae_np,
     mse_np,
+    r2_score_np,
     huber_loss_np,
     quantile_loss_np,
     # 统一损失计算
@@ -143,6 +144,7 @@ __all__ = [
     "pearson_ic_by_date",
     "mae_np",
     "mse_np",
+    "r2_score_np",
     "huber_loss_np",
     "quantile_loss_np",
     "compute_loss_np",
