@@ -25,30 +25,23 @@ import torch
 import torch.nn as nn
 
 if TYPE_CHECKING:
-    from template.configs.model_runtime_config import Config
+    from template.configs.pipeline_config import PipelineConfig
 
 
 class CheckpointManager:
-    """模块化的模型回退/早停管理器
+    """模块化的模型回退/早停管理器；cfg 为 PipelineConfig，从 cfg.nn 读取 checkpoint 相关字段。"""
     
-    支持多种策略：
-    - simple: 简单的全局最优（当前默认行为）
-    - warmup: 前N个epoch不参与best竞争
-    - ema: 使用指标的EMA平滑值来判断是否改善
-    - patience: 连续P个epoch无改善则早停
-    - combined: 组合以上所有策略
-    """
-    
-    def __init__(self, cfg: "Config"):
+    def __init__(self, cfg: "PipelineConfig"):
+        nn = cfg.nn
         self.cfg = cfg
-        self.strategy = cfg.checkpoint_strategy
-        self.metric_name = cfg.checkpoint_metric
-        self.warmup_epochs = cfg.checkpoint_warmup_epochs
-        self.patience = cfg.checkpoint_patience
-        self.min_delta = cfg.checkpoint_min_delta
-        self.ema_alpha = cfg.checkpoint_ema_alpha
-        self.save_to_disk = cfg.checkpoint_save_to_disk
-        self.save_path = cfg.checkpoint_save_path
+        self.strategy = nn.checkpoint_strategy
+        self.metric_name = nn.checkpoint_metric
+        self.warmup_epochs = nn.checkpoint_warmup_epochs
+        self.patience = nn.checkpoint_patience
+        self.min_delta = nn.checkpoint_min_delta
+        self.ema_alpha = nn.checkpoint_ema_alpha
+        self.save_to_disk = nn.checkpoint_save_to_disk
+        self.save_path = nn.checkpoint_save_path
         
         # 判断指标方向：越大越好还是越小越好
         self.higher_is_better = self.metric_name in ['val_rankic', 'val_ic', 'val_r2']

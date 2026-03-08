@@ -20,7 +20,12 @@ import torch
 import torch.nn.functional as F
 
 if TYPE_CHECKING:
-    from template.configs.model_runtime_config import Config
+    from template.configs.pipeline_config import PipelineConfig
+
+# 需按日 batch 训练的损失（torch_trainer 等会据此判断）
+IC_LOSS_NAMES = ("pearson_ic", "sigmoid_rankic", "neuralsort_rankic")
+REGRESSION_LOSS_NAMES = ("mse", "huber", "quantile_loss", *IC_LOSS_NAMES)
+CLASSIFICATION_LOSS_NAMES = ("bce",)
 
 
 # ============================================================
@@ -185,50 +190,38 @@ def neuralsort_rankic_loss(pred: torch.Tensor, y: torch.Tensor, tau: float = 1.0
     return -corr
 
 
-def get_loss_fn(cfg: "Config") -> Callable[[torch.Tensor, torch.Tensor], torch.Tensor]:
-    """根据配置返回损失函数
-    
-    Args:
-        cfg: 配置对象，需包含 task_type, loss_name 等属性
-    
-    Returns:
-        损失函数 (pred, y) -> loss
-    
-    支持的损失函数：
-        回归任务：mse, huber, quantile_loss, pearson_ic, sigmoid_rankic, neuralsort_rankic
-        分类任务：bce
-    """
-    def quantile_loss(pred: torch.Tensor, y: torch.Tensor, tau: float = 0.9) -> torch.Tensor:
-        """分位数损失
-        
-        tau: 分位数,0-1之间,如0.1,0.5,0.9等
-        理论上当tau取0.5时计算得到的结果与MAE作为损失函数结果一致
-        """
+def get_loss_fn(cfg: "PipelineConfig") -> Callable[[torch.Tensor, torch.Tensor], torch.Tensor]:
+    """根据配置返回损失函数。cfg 为 PipelineConfig，从 cfg.model.objective 与 cfg.nn 读取参数。"""
+    task_type = cfg.model.objective
+    nn = cfg.nn
+    loss_name = nn.loss_name
+    huber_delta = nn.huber_delta
+    tau = nn.tau
+    softrank_tau = nn.softrank_tau
+
+    def quantile_loss(pred: torch.Tensor, y: torch.Tensor, tau_val: float = 0.9) -> torch.Tensor:
         error = y - pred
-        quantile_error = torch.where(error >= 0, 
-                                    tau * error, 
-                                    (tau - 1) * error)
+        quantile_error = torch.where(error >= 0, tau_val * error, (tau_val - 1) * error)
         return torch.mean(quantile_error)
-    
-    if cfg.task_type == "regression":
-        if cfg.loss_name == "mse":
+
+    if task_type == "regression":
+        if loss_name == "mse":
             return lambda pred, y: F.mse_loss(pred, y)
-        if cfg.loss_name == "huber":
-            return lambda pred, y: F.smooth_l1_loss(pred, y, beta=cfg.huber_delta)
-        if cfg.loss_name == "quantile_loss":
-            return lambda pred, y: quantile_loss(pred, y, tau=cfg.tau)
-        # IC/RankIC 损失函数（需要按日batch训练）
-        if cfg.loss_name == "pearson_ic":
+        if loss_name == "huber":
+            return lambda pred, y: F.smooth_l1_loss(pred, y, beta=huber_delta)
+        if loss_name == "quantile_loss":
+            return lambda pred, y: quantile_loss(pred, y, tau_val=tau)
+        if loss_name == "pearson_ic":
             return lambda pred, y: pearson_ic_loss(pred, y)
-        if cfg.loss_name == "sigmoid_rankic":
-            return lambda pred, y: sigmoid_rankic_loss(pred, y, tau=cfg.softrank_tau)
-        if cfg.loss_name == "neuralsort_rankic":
-            return lambda pred, y: neuralsort_rankic_loss(pred, y, tau=cfg.softrank_tau)
-        raise ValueError(f"Unsupported loss function: {cfg.loss_name}")
-    
-    if cfg.task_type == "classification":
-        if cfg.loss_name == "bce":
+        if loss_name == "sigmoid_rankic":
+            return lambda pred, y: sigmoid_rankic_loss(pred, y, tau=softrank_tau)
+        if loss_name == "neuralsort_rankic":
+            return lambda pred, y: neuralsort_rankic_loss(pred, y, tau=softrank_tau)
+        raise ValueError(f"Unsupported loss function: {loss_name}")
+
+    if task_type == "classification":
+        if loss_name == "bce":
             return lambda pred, y: F.binary_cross_entropy_with_logits(pred, y)
-        raise ValueError(f"Unsupported loss function: {cfg.loss_name}")
-    
-    raise ValueError(f"Unsupported task type: {cfg.task_type}")
+        raise ValueError(f"Unsupported loss function: {loss_name}")
+
+    raise ValueError(f"Unsupported task type: {task_type}")

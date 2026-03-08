@@ -24,7 +24,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 
-from template.configs.model_runtime_config import NNRuntimeConfig
+from template.configs.pipeline_config import NNConfig
 from template.configs.presets import make_baseline_lgbm, make_baseline_xgb, make_baseline_nn
 from template.models.registry import NN_MODEL_REGISTRY, build_nn_model
 from template.runners.train import run_train
@@ -84,7 +84,7 @@ def _make_synthetic_data(root: Path, work_root: Path) -> tuple[Path, Path]:
 
 
 def _smoke_nn_builders() -> None:
-    cfg = NNRuntimeConfig(
+    cfg = NNConfig(
         model_name="lstm",
         emb_dim=4,
         hidden=32,

@@ -27,7 +27,7 @@ from template.data.preprocess import PreprocessorState, transform_features
 from template.data.parquet_adapter import LargeParquetConfig, iter_parquet_batches
 from template.models.gbdt.lgbm_model import LGBMModelWrapper
 from template.models.gbdt.xgb_model import XGBModelWrapper
-from template.configs.model_runtime_config import build_nn_runtime_config_from_dict
+from template.configs.pipeline_config import nn_config_from_meta
 from template.models import build_nn_model
 
 # 直接运行本脚本时使用的默认参数，请按需修改 model_path / meta_path
@@ -150,7 +150,7 @@ def _predict_nn(
     if not test_path or not os.path.exists(test_path):
         raise FileNotFoundError(f"test parquet not found: {test_path}")
 
-    nn_cfg = build_nn_runtime_config_from_dict(nn_cfg_raw)
+    nn_cfg = nn_config_from_meta(nn_cfg_raw)
     num_features = len(feature_cols)
     model = build_nn_model(nn_cfg.model_name, nn_cfg, num_ids, num_features)
     model = cast(nn.Module, model)

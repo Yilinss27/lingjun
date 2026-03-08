@@ -11,7 +11,7 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
-from template.configs.model_runtime_config import Config
+from template.configs.pipeline_config import NNConfig
 
 
 class LSTMWithIndexEmbedding(nn.Module):
@@ -87,7 +87,7 @@ class LSTMWithIndexEmbedding(nn.Module):
         return y
 
 
-def build_lstm_model(cfg: Config, num_indices: int, num_features: int) -> nn.Module:
+def build_lstm_model(cfg: NNConfig, num_indices: int, num_features: int) -> nn.Module:
     """构建 LSTM 模型
     
     Args:

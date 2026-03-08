@@ -9,7 +9,7 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
-from template.configs.model_runtime_config import Config
+from template.configs.pipeline_config import NNConfig
 
 
 class GRUWithIndexEmbedding(nn.Module):
@@ -85,15 +85,8 @@ class GRUWithIndexEmbedding(nn.Module):
         return y
 
 
-def build_gru_model(cfg: Config, num_indices: int, num_features: int) -> nn.Module:
-    """构建 GRU 模型
-    
-    【需要在 Config 中添加的字段】（或复用 hidden/layers 配置）
-    - gru_hidden: GRU 隐藏层大小（可复用 cfg.hidden）
-    - gru_layers: GRU 层数（可复用 cfg.layers）
-    
-    Args:
-        cfg: 配置对象
+def build_gru_model(cfg: NNConfig, num_indices: int, num_features: int) -> nn.Module:
+    """构建 GRU 模型。cfg 为 NNConfig，gru_hidden/gru_layers 可选，缺省复用 hidden/layers。"""
         num_indices: 指数数量
         num_features: 输入特征数量
         

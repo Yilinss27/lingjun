@@ -19,7 +19,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from template.configs.model_runtime_config import build_nn_runtime_config
 from template.configs.pipeline_config import PipelineConfig
 from template.configs.presets import make_baseline_lgbm, make_baseline_xgb, make_baseline_nn
 from template.data.io_parquet import (
@@ -192,13 +191,11 @@ def _train_nn(cfg) -> dict:
     )
 
     # ── Build model & trainer ──
-    nn_cfg = build_nn_runtime_config(cfg)
-
     num_features = len(feature_cols)
-    model = build_nn_model(cfg.nn.model_name, nn_cfg, num_ids, num_features)
+    model = build_nn_model(cfg.nn.model_name, cfg.nn, num_ids, num_features)
     model = cast(nn.Module, model)
-    device = get_torch_device(nn_cfg)
-    trainer = TorchTrainer(model, nn_cfg, device)
+    device = get_torch_device(cfg)
+    trainer = TorchTrainer(model, cfg, device)
 
     samples = cast(dict[str, dict[str, np.ndarray]], samples)
 

@@ -112,6 +112,45 @@ class NNConfig:
     checkpoint_warmup_epochs: int = 16
     checkpoint_min_delta: float = 0.0
     checkpoint_ema_alpha: float = 0.0
+    checkpoint_save_to_disk: bool = False
+    checkpoint_save_path: str = "checkpoints/"
+
+
+def nn_config_from_meta(d: dict) -> NNConfig:
+    """从 meta['nn_config'] 字典恢复 NNConfig，供 predict 端使用。"""
+    return NNConfig(
+        model_name=str(d.get("model_name", "lstm")),
+        lookback=int(d.get("lookback", 32)),
+        emb_dim=int(d.get("emb_dim", 0)),
+        hidden=int(d.get("hidden", 128)),
+        layers=int(d.get("layers", 2)),
+        drop_out=float(d.get("drop_out", 0.2)),
+        loss_name=str(d.get("loss_name", "mse")),
+        huber_delta=float(d.get("huber_delta", 1.0)),
+        tau=float(d.get("tau", 0.9)),
+        softrank_tau=float(d.get("softrank_tau", 1.0)),
+        lr=float(d.get("lr", 1e-3)),
+        weight_decay=float(d.get("weight_decay", 1e-5)),
+        batch_size=int(d.get("batch_size", 256)),
+        epochs=int(d.get("epochs", 12)),
+        device=d.get("device", "auto") if isinstance(d.get("device"), str) else "auto",
+        use_amp=bool(d.get("use_amp", False)),
+        amp_dtype=str(d.get("amp_dtype", "float16")),
+        compile_model=bool(d.get("compile_model", False)),
+        compile_mode=str(d.get("compile_mode", "reduce-overhead")),
+        dataloader_workers=int(d.get("dataloader_workers", 0)),
+        prefetch_factor=int(d.get("prefetch_factor", 2)),
+        pin_memory=bool(d.get("pin_memory", False)),
+        checkpoint_enabled=bool(d.get("checkpoint_enabled", False)),
+        checkpoint_metric=str(d.get("checkpoint_metric", "val_loss")),
+        checkpoint_strategy=str(d.get("checkpoint_strategy", "combined")),
+        checkpoint_patience=int(d.get("checkpoint_patience", 16)),
+        checkpoint_warmup_epochs=int(d.get("checkpoint_warmup_epochs", 16)),
+        checkpoint_min_delta=float(d.get("checkpoint_min_delta", 0.0)),
+        checkpoint_ema_alpha=float(d.get("checkpoint_ema_alpha", 0.0)),
+        checkpoint_save_to_disk=bool(d.get("checkpoint_save_to_disk", False)),
+        checkpoint_save_path=str(d.get("checkpoint_save_path", "checkpoints/")),
+    )
 
 
 @dataclass

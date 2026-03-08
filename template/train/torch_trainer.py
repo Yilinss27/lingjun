@@ -32,47 +32,31 @@ from torch.amp.autocast_mode import autocast
 from torch.amp.grad_scaler import GradScaler
 
 from .checkpoint import CheckpointManager
-from .losses import get_loss_fn
+from .losses import get_loss_fn, IC_LOSS_NAMES
 from eval import mse_np, mae_np, r2_score_np, rank_ic_by_date, pearson_ic_by_date
 
 if TYPE_CHECKING:
-    from template.configs.model_runtime_config import Config
+    from template.configs.pipeline_config import PipelineConfig
 
 
 # ============================================================
 # AMP 工具函数
 # ============================================================
 
-def get_amp_dtype(cfg: "Config") -> torch.dtype:
-    """根据配置获取 AMP 数据类型
-    
-    Args:
-        cfg: 配置对象，需包含 amp_dtype 属性
-    
-    Returns:
-        torch.dtype: float16 或 bfloat16
-    """
-    if getattr(cfg, 'amp_dtype', 'float16') == 'bfloat16':
+def get_amp_dtype(cfg: "PipelineConfig") -> torch.dtype:
+    """根据配置获取 AMP 数据类型。从 cfg.nn.amp_dtype 读取。"""
+    if getattr(cfg.nn, 'amp_dtype', 'float16') == 'bfloat16':
         # 检查设备是否支持 bfloat16
         if torch.cuda.is_available() and torch.cuda.is_bf16_supported():
             return torch.bfloat16
     return torch.float16
 
 
-def create_scaler(cfg: "Config", device: torch.device) -> Optional[GradScaler]:
-    """创建 GradScaler（仅在 CUDA + AMP 时需要）
-    
-    Args:
-        cfg: 配置对象
-        device: PyTorch 设备
-    
-    Returns:
-        GradScaler 或 None
-    """
-    use_amp = getattr(cfg, 'use_amp', False)
+def create_scaler(cfg: "PipelineConfig", device: torch.device) -> Optional[GradScaler]:
+    """创建 GradScaler（仅在 CUDA + AMP 时需要）。从 cfg.nn 读取。"""
+    use_amp = getattr(cfg.nn, 'use_amp', False)
     if use_amp and device.type == 'cuda':
-        # bfloat16 不需要 scaler（不会 overflow）
-        if getattr(cfg, 'amp_dtype', 'float16') == 'bfloat16':
+        if getattr(cfg.nn, 'amp_dtype', 'float16') == 'bfloat16':
             return None
         return GradScaler()
     return None
@@ -82,20 +66,12 @@ def create_scaler(cfg: "Config", device: torch.device) -> Optional[GradScaler]:
 # 设备管理
 # ============================================================
 
-def get_torch_device(cfg: "Config") -> torch.device:
-    """根据配置获取 PyTorch 设备
-    
-    Args:
-        cfg: 配置对象，需包含 device 属性 ('auto', 'cpu', 'gpu')
-    
-    Returns:
-        torch.device 对象
-    """
-    if cfg.device == "cpu":
+def get_torch_device(cfg: "PipelineConfig") -> torch.device:
+    """根据配置获取 PyTorch 设备。从 cfg.nn.device 读取。"""
+    if cfg.nn.device == "cpu":
         return torch.device("cpu")
-    if cfg.device == "gpu":
+    if cfg.nn.device == "gpu":
         return torch.device("cuda")
-    # auto: 优先使用 GPU
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -222,43 +198,26 @@ class DailyBatchDataset:
 
 def make_dataloader(
     split_data: Dict[str, np.ndarray], 
-    cfg: "Config", 
+    cfg: "PipelineConfig", 
     shuffle: bool = True, 
 ) -> DataLoader:
-    """创建优化的DataLoader，支持可复现的随机性控制
-    
-    GPU 优化特性：
-        - pin_memory: 加速 CPU->GPU 数据传输（由 cfg.pin_memory 控制）
-        - num_workers: 多进程数据加载（由 cfg.dataloader_workers 控制）
-        - prefetch_factor: 预取批次数（由 cfg.prefetch_factor 控制）
-    
-    Args:
-        split_data: 数据字典，需包含 "X", "id", "y" 键
-        cfg: 配置对象，需包含 batch_size 及 GPU 优化属性
-        shuffle: 是否打乱数据
-    
-    Returns:
-        DataLoader 对象
-    """
+    """创建 DataLoader。cfg 为 PipelineConfig，从 cfg.nn 读取 batch_size、dataloader_workers、prefetch_factor、pin_memory。"""
+    nn = cfg.nn
     ds = NpDatasetTyped(split_data["X"], split_data["id"], split_data["y"])
 
-    # GPU 优化：使用配置中的参数
-    num_workers = getattr(cfg, 'dataloader_workers', 4)
+    num_workers = getattr(nn, 'dataloader_workers', 0)
     num_workers = min(num_workers, os.cpu_count() or 1)
-    # Windows 下多进程 DataLoader 易触发 pickle/管道错误，若显式设为 0 则保持单进程
     if sys.platform == 'win32' and num_workers > 0:
         num_workers = 2
-    prefetch_factor = getattr(cfg, 'prefetch_factor', 4)
-    pin_memory = getattr(cfg, 'pin_memory', True) and torch.cuda.is_available()
-    
-    # 创建随机数生成器，用于控制 shuffle 的可复现性
+    prefetch_factor = getattr(nn, 'prefetch_factor', 2)
+    pin_memory = getattr(nn, 'pin_memory', False) and torch.cuda.is_available()
+
     g = get_generator()
 
-    # num_workers=0 时不能传 prefetch_factor，否则会报错
     if num_workers > 0:
         return DataLoader(
             ds,
-            batch_size=cfg.batch_size,
+            batch_size=nn.batch_size,
             shuffle=shuffle,
             drop_last=False,
             collate_fn=collate_fn,
@@ -271,7 +230,7 @@ def make_dataloader(
         )
     return DataLoader(
         ds,
-        batch_size=cfg.batch_size,
+        batch_size=nn.batch_size,
         shuffle=shuffle,
         drop_last=False,
         collate_fn=collate_fn,
@@ -653,61 +612,57 @@ class TorchTrainer:
         test_df = trainer.predict(samples["test"])
     """
     
-    def __init__(self, model: nn.Module, cfg: "Config", device: torch.device):
+    def __init__(self, model: nn.Module, cfg: "PipelineConfig", device: torch.device):
         """
         Args:
             model: PyTorch 模型，需支持 forward(X, ids) 接口
-            cfg: 配置对象
+            cfg: PipelineConfig
             device: PyTorch 设备
         """
         self.cfg = cfg
         self.device = device
-        
-        # GPU 优化：torch.compile() 加速（PyTorch 2.0+）
-        compile_model = getattr(cfg, 'compile_model', False)
+        nn_cfg = cfg.nn
+
+        compile_model = getattr(nn_cfg, 'compile_model', False)
         if compile_model and hasattr(torch, 'compile') and device.type == 'cuda':
-            compile_mode = getattr(cfg, 'compile_mode', 'reduce-overhead')
+            compile_mode = getattr(nn_cfg, 'compile_mode', 'reduce-overhead')
             print(f"[GPU优化] 启用 torch.compile(), mode='{compile_mode}'")
             try:
                 model = cast(nn.Module, torch.compile(model, mode=compile_mode))
             except Exception as e:
                 print(f"[GPU优化] torch.compile() 失败: {e}, 使用原始模型")
-        
+
         self.model = model.to(device)
         self.loss_fn = get_loss_fn(cfg)
-        self.ckpt_mgr = CheckpointManager(cfg) if cfg.checkpoint_enabled else None
-        
-        # GPU 优化：混合精度训练 (AMP)
-        self.use_amp = getattr(cfg, 'use_amp', False) and device.type == 'cuda'
+        self.ckpt_mgr = CheckpointManager(cfg) if nn_cfg.checkpoint_enabled else None
+
+        self.use_amp = getattr(nn_cfg, 'use_amp', False) and device.type == 'cuda'
         self.amp_dtype = get_amp_dtype(cfg) if self.use_amp else torch.float32
         self.scaler = create_scaler(cfg, device)
-        
+
         if self.use_amp:
             dtype_name = 'bfloat16' if self.amp_dtype == torch.bfloat16 else 'float16'
             scaler_status = 'enabled' if self.scaler else 'disabled'
             print(f"[GPU优化] 启用混合精度训练 (AMP), dtype={dtype_name}, scaler={scaler_status}")
 
         self.grad_norm_cfg: Optional[Dict[str, object]] = None
-        if getattr(cfg, "log_grad_norm", False):
-            log_dir = str(getattr(cfg, "grad_norm_log_dir", "log/grad_norms"))
+        if getattr(nn_cfg, "log_grad_norm", False):
+            log_dir = str(getattr(nn_cfg, "grad_norm_log_dir", "log/grad_norms"))
             os.makedirs(log_dir, exist_ok=True)
             timestamp = time.strftime("%Y%m%d_%H%M%S")
-            model_name = str(getattr(cfg, "model_name", "model"))
+            model_name = str(getattr(nn_cfg, "model_name", "model"))
             log_path = os.path.join(log_dir, f"{model_name}_gradnorm_{timestamp}.jsonl")
             self.grad_norm_cfg = {
                 "enabled": True,
                 "log_path": log_path,
-                "freq": int(getattr(cfg, "grad_norm_log_freq", 50)),
-                "group_level": int(getattr(cfg, "grad_norm_group_level", 3)),
-                "top_k": int(getattr(cfg, "grad_norm_topk", 200)),
+                "freq": int(getattr(nn_cfg, "grad_norm_log_freq", 50)),
+                "group_level": int(getattr(nn_cfg, "grad_norm_group_level", 3)),
+                "top_k": int(getattr(nn_cfg, "grad_norm_topk", 200)),
                 "model_name": model_name,
             }
             print(f"[GradNorm] Logging grad norms to: {log_path}")
-        
-        # 自动判断训练模式：IC/RankIC 损失需要按日batch
-        self.use_daily = cfg.use_daily_batch or cfg.loss_name in [
-            "pearson_ic", "sigmoid_rankic", "neuralsort_rankic"
-        ]
+
+        self.use_daily = nn_cfg.loss_name in IC_LOSS_NAMES
         
         # 训练历史
         self.history: Dict[str, list] = {
@@ -736,23 +691,26 @@ class TorchTrainer:
         """
         import torch.optim as optim
         
+        nn_cfg = self.cfg.nn
         optimizer = optim.AdamW(
             self.model.parameters(), 
-            lr=self.cfg.lr, 
-            weight_decay=self.cfg.weight_decay
+            lr=nn_cfg.lr, 
+            weight_decay=nn_cfg.weight_decay
         )
-        
-        # 根据训练模式准备数据
+
         if self.use_daily:
             if verbose:
-                print(f"[Mode] 使用按日batch训练模式 (loss={self.cfg.loss_name})")
+                print(f"[Mode] 使用按日batch训练模式 (loss={nn_cfg.loss_name})")
+            pin_mem = getattr(nn_cfg, "pin_memory", False) and torch.cuda.is_available()
             train_ds = DailyBatchDataset(
                 train_data["X"], train_data["id"], 
-                train_data["y"], train_data["date"]
+                train_data["y"], train_data["date"],
+                pin_memory=pin_mem,
             )
             val_ds = DailyBatchDataset(
                 val_data["X"], val_data["id"], 
-                val_data["y"], val_data["date"]
+                val_data["y"], val_data["date"],
+                pin_memory=pin_mem,
             )
             if verbose:
                 print(f"  训练集: {len(train_ds)} 天, 验证集: {len(val_ds)} 天")
@@ -761,11 +719,10 @@ class TorchTrainer:
             val_loader = make_dataloader(val_data, self.cfg, shuffle=False)
         
         if verbose and self.ckpt_mgr:
-            print(f"[CheckpointManager] Strategy: '{self.cfg.checkpoint_strategy}', "
-                  f"metric: '{self.cfg.checkpoint_metric}'")
-        
-        # 训练循环
-        for ep in range(1, self.cfg.epochs + 1):
+            print(f"[CheckpointManager] Strategy: '{nn_cfg.checkpoint_strategy}', "
+                  f"metric: '{nn_cfg.checkpoint_metric}'")
+
+        for ep in range(1, nn_cfg.epochs + 1):
             # 训练一个epoch（使用 AMP 优化）
             if self.use_daily:
                 tr_loss, tr_pred, tr_y = train_one_epoch_daily(
@@ -808,8 +765,8 @@ class TorchTrainer:
             
             # 打印日志
             if verbose:
-                print(f"[Epoch {ep:02d}] train_{self.cfg.loss_name}={tr_loss:.6f}, "
-                      f"val_{self.cfg.loss_name}={val_loss:.6f}")
+                print(f"[Epoch {ep:02d}] train_{nn_cfg.loss_name}={tr_loss:.6f}, "
+                      f"val_{nn_cfg.loss_name}={val_loss:.6f}")
                 print(f"           val_mse={mse_np(val_pred, val_y):.6f}, "
                       f"val_mae={mae_np(val_pred, val_y):.6f}")
                 print(f"           val_r2={r2_val:.6f}")
@@ -828,14 +785,14 @@ class TorchTrainer:
                 should_save, should_stop = self.ckpt_mgr.step(ep, self.model, epoch_metrics)
                 if verbose and should_save:
                     print(f"  -> New best model saved "
-                          f"({self.cfg.checkpoint_metric}: {epoch_metrics[self.cfg.checkpoint_metric]:.6f})")
+                          f"({nn_cfg.checkpoint_metric}: {epoch_metrics[nn_cfg.checkpoint_metric]:.6f})")
             
             if verbose:
                 print()
             
             if should_stop:
                 if verbose:
-                    print(f"[Early Stop] No improvement for {self.cfg.checkpoint_patience} epochs.")
+                    print(f"[Early Stop] No improvement for {nn_cfg.checkpoint_patience} epochs.")
                 break
         
         # 加载最佳模型

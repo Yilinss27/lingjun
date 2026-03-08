@@ -10,7 +10,7 @@ from typing import Dict, TYPE_CHECKING
 import pandas as pd
 
 if TYPE_CHECKING:
-    from template.configs.model_runtime_config import Config
+    from template.configs.pipeline_config import PipelineConfig
 
 # ============================================================
 # 面板数据工具
@@ -104,18 +104,10 @@ def make_daily_topk(
 # 时间工具
 # ============================================================
 
-def get_trading_dates(df: pd.DataFrame, cfg: Config) -> pd.DatetimeIndex:
-    """
-    获取面板中的所有交易日期（已排序）
-    
-    参数：
-        df: 面板数据
-        cfg: 配置对象
-    
-    返回：
-        排序后的交易日期 DatetimeIndex
-    """
-    dates = pd.to_datetime(df[cfg.date_col].unique())
+def get_trading_dates(df: pd.DataFrame, cfg: "PipelineConfig") -> pd.DatetimeIndex:
+    """获取面板中的所有交易日期（已排序）。使用 cfg.data.date_col。"""
+    date_col = cfg.data.date_col
+    dates = pd.to_datetime(df[date_col].unique())
     return dates.sort_values()
 
 
@@ -123,37 +115,23 @@ def get_trading_dates(df: pd.DataFrame, cfg: Config) -> pd.DatetimeIndex:
 # 数据验证工具
 # ============================================================
 
-def check_panel_integrity(df: pd.DataFrame, cfg: Config) -> Dict:
-    """
-    检查面板数据完整性
-    
-    参数：
-        df: 面板数据
-        cfg: 配置对象
-    
-    返回：
-        包含各项检查结果的字典
-    """
+def check_panel_integrity(df: pd.DataFrame, cfg: "PipelineConfig") -> Dict:
+    """检查面板数据完整性。使用 cfg.data.date_col 与 cfg.data.id_cols[0]。"""
+    date_col = cfg.data.date_col
+    id_col = cfg.data.id_cols[0]
     result = {
         'n_rows': len(df),
-        'n_dates': df[cfg.date_col].nunique(),
-        'n_stocks': df[cfg.id_col].nunique(),
-        'date_range': (df[cfg.date_col].min(), df[cfg.date_col].max()),
-        'duplicates': df.duplicated(subset=[cfg.date_col, cfg.id_col]).sum(),
+        'n_dates': df[date_col].nunique(),
+        'n_stocks': df[id_col].nunique(),
+        'date_range': (df[date_col].min(), df[date_col].max()),
+        'duplicates': df.duplicated(subset=[date_col, id_col]).sum(),
         'null_counts': df.isnull().sum().to_dict()
     }
     return result
 
 
-def print_panel_info(df: pd.DataFrame, cfg: Config, name: str = "Panel") -> None:
-    """
-    打印面板数据的基本信息
-    
-    参数：
-        df: 面板数据
-        cfg: 配置对象
-        name: 数据集名称
-    """
+def print_panel_info(df: pd.DataFrame, cfg: "PipelineConfig", name: str = "Panel") -> None:
+    """打印面板数据的基本信息。"""
     info = check_panel_integrity(df, cfg)
     print(f"[{name}] {info['n_rows']} 行, {info['n_dates']} 天, {info['n_stocks']} 只股票")
     print(f"  日期范围: {info['date_range'][0]} ~ {info['date_range'][1]}")
