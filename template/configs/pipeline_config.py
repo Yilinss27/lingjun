@@ -68,6 +68,7 @@ class ModelConfig:
 class RunnerConfig:
     seed: int = 42
     output_dir: str = "res/pipeline"
+    save_model: bool = True   # 是否保存模型权重/参数（model.pkl 或 model.pt）
     save_test_pred: bool = True
     predict_batch_size: int = 1_000_000
 

@@ -5,24 +5,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from .nn import (
-    LSTMWithIndexEmbedding,
-    build_lstm_model,
-    GRUWithIndexEmbedding,
-    build_gru_model,
-    AttentionGRUWithIndexEmbedding,
-    build_attention_gru_model,
-    TCNWithIndexEmbedding,
-    build_tcn_model,
-    TransformerModel,
-    build_transformer_model,
-    TransformerEncModel,
-    build_transformer_enc_model,
-    AutoformerModel,
-    build_autoformer_model,
-    Autoformer_encoderModel,
-    build_autoformer_encoder_model,
-)
+from .lstm import LSTMWithIndexEmbedding, build_lstm_model
+from .GRUModel import GRUWithIndexEmbedding, build_gru_model
+from .Attention_GRUModel import AttentionGRUWithIndexEmbedding, build_attention_gru_model
+from .TCNModel import TCNWithIndexEmbedding, build_tcn_model
+from .TransformerModel import TransformerModel, build_transformer_model
+from .Transformer_Enc import TransformerEncModel, build_transformer_enc_model
+from .AutoformerModel import AutoformerModel, build_autoformer_model
+from .Autoformer_encoderModel import Autoformer_encoderModel, build_autoformer_encoder_model
 from .registry import NN_MODEL_REGISTRY, get_nn_builder, build_nn_model
 
 if TYPE_CHECKING:

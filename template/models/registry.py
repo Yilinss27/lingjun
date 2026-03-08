@@ -3,16 +3,14 @@ from __future__ import annotations
 
 from typing import Callable
 
-from .nn import (
-    build_lstm_model,
-    build_gru_model,
-    build_attention_gru_model,
-    build_tcn_model,
-    build_transformer_model,
-    build_transformer_enc_model,
-    build_autoformer_model,
-    build_autoformer_encoder_model,
-)
+from .lstm import build_lstm_model
+from .GRUModel import build_gru_model
+from .Attention_GRUModel import build_attention_gru_model
+from .TCNModel import build_tcn_model
+from .TransformerModel import build_transformer_model
+from .Transformer_Enc import build_transformer_enc_model
+from .AutoformerModel import build_autoformer_model
+from .Autoformer_encoderModel import build_autoformer_encoder_model
 
 
 ModelBuilder = Callable[..., object]

@@ -88,8 +88,11 @@ def _train_gbdt(cfg) -> dict:
     metrics = trainer.evaluate(holdout_df, feature_cols)
 
     run_dir, run_id = _make_run_dir(cfg.runner.output_dir, cfg.model.family)
-    model_path = run_dir / f"model.pkl"
-    trainer.save_model(str(model_path))
+    model_path = run_dir / "model.pkl"
+    if cfg.runner.save_model:
+        trainer.save_model(str(model_path))
+    else:
+        model_path = ""
 
     pred_path = ""
     if cfg.runner.save_test_pred and cfg.data.test_parquet_path:
@@ -111,7 +114,7 @@ def _train_gbdt(cfg) -> dict:
         "family": cfg.model.family,
         "objective": cfg.model.objective,
         "metrics": metrics,
-        "model_path": str(model_path),
+        "model_path": str(model_path) if model_path else "",
         "test_pred_path": pred_path,
         "feature_cols": feature_cols,
         "train_end": train_end,
@@ -206,7 +209,10 @@ def _train_nn(cfg) -> dict:
     # ── Save artifacts ──
     run_dir, run_id = _make_run_dir(cfg.runner.output_dir, f"nn_{cfg.nn.model_name}")
     model_path = run_dir / "model.pt"
-    torch.save(trainer.model.state_dict(), model_path)
+    if cfg.runner.save_model:
+        torch.save(trainer.model.state_dict(), model_path)
+    else:
+        model_path = ""
 
     pred_path = run_dir / "test_pred.parquet"
     pred_df.to_parquet(pred_path, index=False)
@@ -219,7 +225,7 @@ def _train_nn(cfg) -> dict:
         "model_name": cfg.nn.model_name,
         "metrics": metrics,
         "history": {k: v[-1] if isinstance(v, list) and v else None for k, v in history.items()},
-        "model_path": str(model_path),
+        "model_path": str(model_path) if model_path else "",
         "test_pred_path": str(pred_path),
         "feature_cols": feature_cols,
         "train_end": train_end,
