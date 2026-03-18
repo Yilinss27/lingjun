@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 
 import numpy as np
 import pandas as pd
@@ -174,11 +174,15 @@ def fit_preprocessor_streaming(
     time_col: str = "timeid",
     z_window: int = 60,
     reservoir_size: int = 200_000,
+    on_batch: Callable[[int, int], None] | None = None,
 ) -> PreprocessorState:
     """Fit preprocessor statistics by streaming through training batches (low memory).
 
     Uses vectorised parallel-Welford for mean/var and reservoir sampling for
     median / quantile — never materialises the full training DataFrame.
+
+    ``on_batch(batches_done, rows_seen)`` is called after each non-empty
+    batch for optional progress tracking.
     """
     cols = list(feature_cols)
     n_feat = len(cols)
@@ -191,6 +195,7 @@ def fit_preprocessor_streaming(
     reservoir = np.empty((reservoir_size, n_feat), dtype=np.float32) if need_reservoir else None
     res_fill = 0
     total_seen = 0
+    batches_done = 0
 
     for batch_df in train_batches:
         if len(batch_df) == 0:
@@ -232,6 +237,10 @@ def fit_preprocessor_streaming(
                 if mask.any():
                     reservoir[indices[mask]] = values[rest_start:][mask].astype(np.float32)
             total_seen += n_batch
+
+        batches_done += 1
+        if on_batch is not None:
+            on_batch(batches_done, total_seen if need_reservoir else int(running_count[0]))
 
     mode = standardize_mode
     if mode == "none" and standardize:

@@ -44,7 +44,11 @@ def init_reproducibility(
         torch.backends.cudnn.benchmark = False
         os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
         if hasattr(torch, 'use_deterministic_algorithms'):
-            torch.use_deterministic_algorithms(True)
+            try:
+                torch.use_deterministic_algorithms(True, warn_only=True)
+            except TypeError:
+                # Older PyTorch versions don't support warn_only
+                torch.use_deterministic_algorithms(True)
         print(f"[Repro] 可复现模式, seed={seed}, cudnn_benchmark=False")
     else:
         torch.backends.cudnn.benchmark = cudnn_benchmark

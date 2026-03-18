@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import deque
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 
 import numpy as np
 import pandas as pd
@@ -119,12 +119,16 @@ def build_nn_samples_streaming(
     lookback: int,
     train_end: object,
     val_end: object,
+    on_batch: Callable[[int, int], None] | None = None,
 ) -> tuple[dict[str, dict[str, np.ndarray]], dict[object, int], int]:
     """Build NN sliding-window samples by streaming pre-transformed batches.
 
     Unlike ``build_nn_samples_from_panel`` this function never needs the full
     panel in memory.  It maintains per-stock ring buffers of length *lookback*
     and emits a window as soon as a buffer is full.
+
+    ``on_batch(batches_done, rows_seen)`` is called after each non-empty
+    batch for optional progress tracking.
 
     Returns
     -------
@@ -147,6 +151,9 @@ def build_nn_samples_streaming(
         "val":   {"X": [], "id": [], "y": [], "date": [], "index": []},
         "test":  {"X": [], "id": [], "y": [], "date": [], "index": []},
     }
+
+    batches_done = 0
+    rows_seen = 0
 
     for batch_df in batch_iter:
         if len(batch_df) == 0:
@@ -192,6 +199,11 @@ def build_nn_samples_streaming(
                 buckets[split]["y"].append(float(y_val))
                 buckets[split]["date"].append(d_val)
                 buckets[split]["index"].append(sid)
+
+        batches_done += 1
+        rows_seen += len(batch_df)
+        if on_batch is not None:
+            on_batch(batches_done, rows_seen)
 
     id_map: dict[object, int] = {v: i for i, v in enumerate(sorted(seen_ids))}
     num_ids = len(id_map)

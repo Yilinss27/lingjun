@@ -1,5 +1,6 @@
 # 原始数据
 data/
+cache/
 
 # Python缓存
 __pycache__/

@@ -321,6 +321,7 @@ def train_one_epoch(
     use_amp: bool = False,
     amp_dtype: torch.dtype = torch.float16,
     grad_norm_cfg: Optional[Dict[str, object]] = None,
+    on_step: Optional[Callable[[int, int, float], None]] = None,
 ) -> Tuple[float, np.ndarray, np.ndarray]:
     """训练一个epoch（常规batch模式）
     
@@ -337,6 +338,7 @@ def train_one_epoch(
         scaler: GradScaler（AMP float16 模式需要，bfloat16 不需要）
         use_amp: 是否启用混合精度训练
         amp_dtype: AMP 数据类型（torch.float16 或 torch.bfloat16）
+        on_step: 可选回调 (step, total_steps, avg_loss)，用于进度跟踪
     
     Returns:
         (avg_loss, pred_all, y_all): 平均损失，所有预测值，所有真实值
@@ -346,6 +348,7 @@ def train_one_epoch(
     n = 0
     preds, ys = [], []
     step = 0
+    total_steps = len(loader)
     
     for X, ids, y in loader:
         X, ids, y = X.to(device, non_blocking=True), ids.to(device, non_blocking=True), y.to(device, non_blocking=True)
@@ -376,6 +379,8 @@ def train_one_epoch(
         preds.append(pred.detach().float().cpu().numpy())  # 确保转回 float32
         ys.append(y.detach().cpu().numpy())
         step += 1
+        if on_step is not None:
+            on_step(step, total_steps, total_loss / max(n, 1))
     
     pred_all = np.concatenate(preds, axis=0) if preds else np.zeros((0, 1), dtype=np.float32)
     y_all = np.concatenate(ys, axis=0) if ys else np.zeros((0, 1), dtype=np.float32)
@@ -395,6 +400,7 @@ def train_one_epoch_daily(
     use_amp: bool = False,
     amp_dtype: torch.dtype = torch.float16,
     grad_norm_cfg: Optional[Dict[str, object]] = None,
+    on_step: Optional[Callable[[int, int, float], None]] = None,
 ) -> Tuple[float, np.ndarray, np.ndarray]:
     """按日batch训练一个epoch（用于IC/RankIC损失函数）
     
@@ -413,6 +419,7 @@ def train_one_epoch_daily(
         scaler: GradScaler（AMP float16 模式需要）
         use_amp: 是否启用混合精度训练
         amp_dtype: AMP 数据类型
+        on_step: 可选回调 (step, total_steps, avg_loss)，用于进度跟踪
     
     Returns:
         (avg_loss, pred_all, y_all): 按天平均的损失，所有预测值，所有真实值
@@ -422,6 +429,7 @@ def train_one_epoch_daily(
     n_days = 0
     preds, ys = [], []
     step = 0
+    total_days = len(daily_dataset)
     
     for X, ids, y in daily_dataset.iter_daily_batches(shuffle=True, extra_seed=epoch_seed):
         if len(X) < 3:  # 样本太少跳过
@@ -457,6 +465,8 @@ def train_one_epoch_daily(
         preds.append(pred.detach().float().cpu().numpy())
         ys.append(y.detach().cpu().numpy())
         step += 1
+        if on_step is not None:
+            on_step(step, total_days, total_loss / max(n_days, 1))
     
     pred_all = np.concatenate(preds, axis=0) if preds else np.zeros((0, 1), dtype=np.float32)
     y_all = np.concatenate(ys, axis=0) if ys else np.zeros((0, 1), dtype=np.float32)
@@ -677,7 +687,8 @@ class TorchTrainer:
         self, 
         train_data: Dict[str, np.ndarray], 
         val_data: Dict[str, np.ndarray],
-        verbose: bool = True
+        verbose: bool = True,
+        on_step_factory: Optional[Callable[[int], Optional[Callable]]] = None,
     ) -> Dict[str, list]:
         """训练模型
         
@@ -685,6 +696,7 @@ class TorchTrainer:
             train_data: 训练数据字典，需包含 "X", "id", "y", "date" 键
             val_data: 验证数据字典
             verbose: 是否打印训练日志
+            on_step_factory: 可选回调工厂 (epoch) -> callback，用于进度跟踪
         
         Returns:
             训练历史字典
@@ -723,7 +735,7 @@ class TorchTrainer:
                   f"metric: '{nn_cfg.checkpoint_metric}'")
 
         for ep in range(1, nn_cfg.epochs + 1):
-            # 训练一个epoch（使用 AMP 优化）
+            step_cb = on_step_factory(ep) if on_step_factory else None
             if self.use_daily:
                 tr_loss, tr_pred, tr_y = train_one_epoch_daily(
                     self.model, train_ds, optimizer, self.loss_fn, self.device, 
@@ -733,6 +745,7 @@ class TorchTrainer:
                     use_amp=self.use_amp,
                     amp_dtype=self.amp_dtype,
                     grad_norm_cfg=self.grad_norm_cfg,
+                    on_step=step_cb,
                 )
                 val_loss, val_pred, val_y = evaluate_daily(
                     self.model, val_ds, self.loss_fn, self.device
@@ -745,6 +758,7 @@ class TorchTrainer:
                     use_amp=self.use_amp,
                     amp_dtype=self.amp_dtype,
                     grad_norm_cfg=self.grad_norm_cfg,
+                    on_step=step_cb,
                 )
                 val_loss, val_pred, val_y = evaluate(
                     self.model, val_loader, self.loss_fn, self.device

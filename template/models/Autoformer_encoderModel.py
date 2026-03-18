@@ -5,16 +5,12 @@ from __future__ import annotations
 
 from typing import Protocol, cast
 
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import matplotlib.pyplot as plt
 import numpy as np
-import math
-from math import sqrt
-import os
-import torch
-import torch.nn as nn
 
 
 class AutoformerEncoderConfigLike(Protocol):
