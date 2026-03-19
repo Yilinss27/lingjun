@@ -16,7 +16,7 @@ class DataConfig:
     date_col: str = "dateid"
     # feature_mode参数用于指定特征选择模式，具体含义如下：
     # "all"：使用所有可用特征; "no_missing"：只使用无缺失值的特征; "top_ic"：使用IC（信息系数）排名前列的特征;"custom"：使用用户自定义的特征列表（custom_features字段给出）
-    feature_mode: Literal["all", "no_missing", "top_ic", "custom"] = "no_missing"
+    feature_mode: Literal["all", "no_missing", "top_ic", "custom"] = "all"
     custom_features: list[str] = field(default_factory=list)
 
     train_ratio: float = 0.75   # 训练集 75%（最多数据学习）
@@ -50,19 +50,25 @@ class DataConfig:
 
 @dataclass
 class PreprocessConfig:
-    fillna_strategy: Literal["none", "zero", "median"] = "none"
-    standardize: bool = False
-    standardize_mode: Literal["none", "global", "cross_section", "date", "time_rolling"] = "cross_section"
+    fillna_strategy: Literal["none", "zero", "median"] = "median"
+    # ── V2 管线标准化配置 ──
+    # standardize_method: 标准化方法（用于 V2 数据管线）
+    #   "rank_gauss"          : 截面 RankGauss（推荐，按 dateid+timeid 分组做排名+逆正态变换）
+    #   "global_zscore"       : 全量 Z-Score（旧方法，用训练集全量均值/方差）
+    #   "none"                : 不做标准化
+    standardize_method: Literal["rank_gauss", "global_zscore", "none"] = "rank_gauss"
+    # ── 以下为旧 V1 管线保留字段（V2 管线不使用） ──
+    standardize: bool = True
+    standardize_mode: Literal["none", "global", "cross_section", "date", "time_rolling"] = "global"
     clip_quantile: float | None = None
     z_window: int = 60
 
 
 @dataclass
 class ModelConfig:
-    family: Literal["lgbm", "xgb", "nn"] = "nn"
-    objective: Literal["regression", "ranking"] = "regression"
-    name: str = "autoformer_encoder"
-    params: dict[str, Any] = field(default_factory=dict)
+    family: Literal["lgbm", "xgb", "nn"] = "nn"              # 由 preset 设置
+    objective: Literal["regression", "ranking"] = "regression"  # 由 preset 设置
+    params: dict[str, Any] = field(default_factory=dict)        # GBDT 超参, 由 preset 设置
 
 
 @dataclass
@@ -128,8 +134,11 @@ class NNConfig:
     pin_memory: bool = True
 
     # ── Memmap 数据管线 ──
-    memmap_cache_dir: str = "cache/memmap"
+    memmap_cache_dir: str = "cache/memmap"          # V1 旧管线缓存目录
+    raw_cache_dir: str = "cache/v2_raw"             # V2 raw cache 目录
+    derived_cache_dir: str = "cache/v2_derived"     # V2 derived cache 目录
     cross_date_windows: bool = False
+    use_v2_pipeline: bool = True                    # 启用 V2 数据管线
 
     # ── Checkpoint / 早停 ──
     checkpoint_enabled: bool = False

@@ -113,7 +113,8 @@ def transform_features(
         if group_cols:
             grp = out.groupby(group_cols, sort=False)[cols]
             mu = grp.transform("mean")
-            sd = grp.transform(lambda x: x.std(ddof=0))
+            # Use built-in "std" string instead of lambda for C-level speed
+            sd = grp.transform("std")
             sd = sd.where(sd.abs() > 1e-12, 1.0)
             out[cols] = (out[cols] - mu) / sd
     elif mode == "date":
@@ -245,15 +246,16 @@ def fit_preprocessor_streaming(
     mode = standardize_mode
     if mode == "none" and standardize:
         mode = "global"
-    need_global = (mode == "global")
-
     medians: dict[str, float] = {}
     means: dict[str, float] = {}
     stds: dict[str, float] = {}
     clip_ranges: dict[str, tuple[float, float]] = {}
     final_std = np.sqrt(running_m2 / np.maximum(running_count, 1))
 
-    if need_global:
+    # Always compute global means/stds regardless of mode.
+    # They serve as fallback for memmap builder (which processes one stock
+    # at a time, making cross_section/date modes impossible).
+    if standardize or mode in ("global", "cross_section", "date", "time_rolling"):
         for j, col in enumerate(cols):
             means[col] = float(running_mean[j])
             stds[col] = float(final_std[j]) if final_std[j] > 1e-12 else 1.0

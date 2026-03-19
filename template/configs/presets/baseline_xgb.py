@@ -1,11 +1,3 @@
-'''
-Author: Young yyyao75@163.com
-Date: 2026-03-05 19:56:14
-LastEditors: Young yyyao75@163.com
-LastEditTime: 2026-03-08 19:35:43
-FilePath: \lingjun\template\configs\presets\baseline_xgb.py
-Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
-'''
 # pyright: reportMissingImports=false
 from __future__ import annotations
 
@@ -13,7 +5,15 @@ from template.configs.pipeline_config import PipelineConfig
 
 
 def make_baseline_xgb() -> PipelineConfig:
+    """
+    基础 XGBoost 配置。仅设置模型相关参数。
+
+    GBDT 不需要标准化和缺失值填充（内部自处理），因此覆盖预处理为关闭。
+    非模型参数由 pipeline_config.py 默认值控制。
+    """
     cfg = PipelineConfig()
+
+    # ── 模型家族 ──
     cfg.model.family = "xgb"
     cfg.model.objective = "regression"
     cfg.model.params = {
@@ -28,7 +28,9 @@ def make_baseline_xgb() -> PipelineConfig:
         "early_stopping_rounds": 80,
         "device_type": "cpu",
     }
+
+    # ── GBDT 不需要预处理 ──
     cfg.preprocess.fillna_strategy = "none"
     cfg.preprocess.standardize = False
-    cfg.runner.output_dir = "res/pipeline"
+
     return cfg

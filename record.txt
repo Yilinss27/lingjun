@@ -1,0 +1,625 @@
+(base) C:\Users\Administrator\Desktop\yyy\lingjun>C:\ProgramData\anaconda3\python.exe c:/Users/Administrator/Desktop/yyy/lingjun/template/runners/train.py
+[Repro] 可复现模式, seed=42, cudnn_benchmark=False
+[Progress] Pass1: scan_train_metadata ...
+[Progress] Pass1: scan_train_metadata done in 0.7s (features=87)
+[Progress] Pass2: fit_preprocessor ...
+[Progress]   Pass2: fit_preprocessor: batch 50, rows 3,226,500, elapsed 11.4s
+[Progress]   Pass2: fit_preprocessor: batch 100, rows 6,453,000, elapsed 22.3s
+[Progress]   Pass2: fit_preprocessor: batch 150, rows 9,679,500, elapsed 32.9s
+[Progress]   Pass2: fit_preprocessor: batch 200, rows 12,906,000, elapsed 43.3s
+[Progress]   Pass2: fit_preprocessor: batch 250, rows 16,132,500, elapsed 53.5s
+[Progress]   Pass2: fit_preprocessor: batch 300, rows 19,359,000, elapsed 1m4s
+[Progress]   Pass2: fit_preprocessor: batch 350, rows 22,585,500, elapsed 1m14s
+[Progress]   Pass2: fit_preprocessor: batch 400, rows 25,812,000, elapsed 1m24s
+[Progress]   Pass2: fit_preprocessor: batch 450, rows 29,038,500, elapsed 1m34s
+[Progress]   Pass2: fit_preprocessor: batch 500, rows 32,265,000, elapsed 1m44s
+[Progress] Pass2: fit_preprocessor done in 1m44s
+[Progress] Pass3: build_memmap_cache ...
+[Memmap] Building cache: 43020000 rows, 87 features, 500 stocks → cache/memmap\preprocessed.dat
+[Memmap] Initializing memory-mapped file (~14.4 GB)...
+[Memmap] File pre-allocated in 0.0s
+[Progress]   Memmap: 1/500 stocks, 86,040 rows written
+[Memmap] Pass3 write: 25/500 stocks (5%), rows=2.2M, elapsed=6s, ETA~105s
+[Memmap] Pass3 write: 50/500 stocks (10%), rows=4.3M, elapsed=11s, ETA~99s
+[Memmap] Pass3 write: 75/500 stocks (15%), rows=6.5M, elapsed=17s, ETA~95s
+[Memmap] Pass3 write: 100/500 stocks (20%), rows=8.6M, elapsed=23s, ETA~91s
+[Memmap] Pass3 write: 125/500 stocks (25%), rows=10.8M, elapsed=29s, ETA~88s
+[Progress]   Memmap: 130/500 stocks, 11,185,200 rows written
+[Memmap] Pass3 write: 150/500 stocks (30%), rows=12.9M, elapsed=35s, ETA~82s
+[Memmap] Pass3 write: 175/500 stocks (35%), rows=15.1M, elapsed=41s, ETA~76s
+[Memmap] Pass3 write: 200/500 stocks (40%), rows=17.2M, elapsed=47s, ETA~70s
+[Memmap] Pass3 write: 225/500 stocks (45%), rows=19.4M, elapsed=53s, ETA~64s
+[Memmap] Pass3 write: 250/500 stocks (50%), rows=21.5M, elapsed=58s, ETA~58s
+[Progress]   Memmap: 260/500 stocks, 22,370,400 rows written
+[Memmap] Pass3 write: 275/500 stocks (55%), rows=23.7M, elapsed=64s, ETA~52s
+[Memmap] Pass3 write: 300/500 stocks (60%), rows=25.8M, elapsed=70s, ETA~46s
+[Memmap] Pass3 write: 325/500 stocks (65%), rows=28.0M, elapsed=76s, ETA~41s
+[Memmap] Pass3 write: 350/500 stocks (70%), rows=30.1M, elapsed=81s, ETA~35s
+[Memmap] Pass3 write: 375/500 stocks (75%), rows=32.3M, elapsed=87s, ETA~29s
+[Progress]   Memmap: 390/500 stocks, 33,555,600 rows written
+[Memmap] Pass3 write: 400/500 stocks (80%), rows=34.4M, elapsed=93s, ETA~23s
+[Memmap] Pass3 write: 425/500 stocks (85%), rows=36.6M, elapsed=99s, ETA~17s
+[Memmap] Pass3 write: 450/500 stocks (90%), rows=38.7M, elapsed=105s, ETA~12s
+[Memmap] Pass3 write: 475/500 stocks (95%), rows=40.9M, elapsed=110s, ETA~6s
+[Memmap] Pass3 write: 500/500 stocks (100%), rows=43.0M, elapsed=116s, ETA~0s
+[Progress]   Memmap: 500/500 stocks, 43,020,000 rows written
+[Memmap] Data written in 121.1s. Building window indices...
+[Memmap] Index built in 8.8s. Train=28,080,000, Val=3,744,000, Test=5,616,000
+[Memmap] Total cache build: 129.9s
+[Progress] Pass3: build_memmap_cache done in 2m10s (train=28080000, val=3744000, test=5616000)
+[Progress] Model built (model=autoformer_encoder, features=87, ids=500, lookback=32, device=cuda)
+[Progress] Training ...
+[GPU优化] 启用混合精度训练 (AMP), dtype=bfloat16, scaler=disabled
+  [Epoch 01/8] step 50/54844, avg_loss=0.142374, elapsed 16.3s, eta 4h56m51s
+  [Epoch 01/8] step 850/54844, avg_loss=0.008710, elapsed 26.6s, eta 28m7s
+  [Epoch 01/8] step 1650/54844, avg_loss=0.004511, elapsed 36.9s, eta 19m49s
+  [Epoch 01/8] step 2450/54844, avg_loss=0.003049, elapsed 47.1s, eta 16m47s
+  [Epoch 01/8] step 3250/54844, avg_loss=0.002305, elapsed 57.2s, eta 15m8s
+  [Epoch 01/8] step 4050/54844, avg_loss=0.001855, elapsed 1m7s, eta 14m6s
+  [Epoch 01/8] step 4850/54844, avg_loss=0.001553, elapsed 1m18s, eta 13m21s
+  [Epoch 01/8] step 5650/54844, avg_loss=0.001337, elapsed 1m28s, eta 12m45s
+  [Epoch 01/8] step 6450/54844, avg_loss=0.001174, elapsed 1m38s, eta 12m16s
+  [Epoch 01/8] step 7250/54844, avg_loss=0.001047, elapsed 1m48s, eta 11m51s
+  [Epoch 01/8] step 8000/54844, avg_loss=0.000951, elapsed 1m58s, eta 11m33s
+  [Epoch 01/8] step 8750/54844, avg_loss=0.000872, elapsed 2m9s, eta 11m17s
+  [Epoch 01/8] step 9400/54844, avg_loss=0.000813, elapsed 2m19s, eta 11m10s
+  [Epoch 01/8] step 10200/54844, avg_loss=0.000751, elapsed 2m29s, eta 10m53s
+  [Epoch 01/8] step 11000/54844, avg_loss=0.000698, elapsed 2m39s, eta 10m35s
+  [Epoch 01/8] step 11800/54844, avg_loss=0.000652, elapsed 2m50s, eta 10m20s
+  [Epoch 01/8] step 12600/54844, avg_loss=0.000613, elapsed 3m0s, eta 10m4s
+  [Epoch 01/8] step 13400/54844, avg_loss=0.000577, elapsed 3m10s, eta 9m49s
+  [Epoch 01/8] step 14150/54844, avg_loss=0.000548, elapsed 3m20s, eta 9m36s
+  [Epoch 01/8] step 14950/54844, avg_loss=0.000520, elapsed 3m31s, eta 9m22s
+  [Epoch 01/8] step 15750/54844, avg_loss=0.000495, elapsed 3m41s, eta 9m8s
+  [Epoch 01/8] step 16550/54844, avg_loss=0.000472, elapsed 3m51s, eta 8m55s
+  [Epoch 01/8] step 17350/54844, avg_loss=0.000451, elapsed 4m1s, eta 8m42s
+  [Epoch 01/8] step 18150/54844, avg_loss=0.000432, elapsed 4m12s, eta 8m29s
+  [Epoch 01/8] step 18950/54844, avg_loss=0.000415, elapsed 4m22s, eta 8m16s
+  [Epoch 01/8] step 19750/54844, avg_loss=0.000399, elapsed 4m32s, eta 8m3s
+  [Epoch 01/8] step 20550/54844, avg_loss=0.000384, elapsed 4m42s, eta 7m51s
+  [Epoch 01/8] step 21350/54844, avg_loss=0.000371, elapsed 4m52s, eta 7m38s
+  [Epoch 01/8] step 22150/54844, avg_loss=0.000358, elapsed 5m2s, eta 7m26s
+  [Epoch 01/8] step 22950/54844, avg_loss=0.000346, elapsed 5m13s, eta 7m14s
+  [Epoch 01/8] step 23750/54844, avg_loss=0.000336, elapsed 5m23s, eta 7m3s
+  [Epoch 01/8] step 24550/54844, avg_loss=0.000325, elapsed 5m33s, eta 6m51s
+  [Epoch 01/8] step 25350/54844, avg_loss=0.000316, elapsed 5m43s, eta 6m39s
+  [Epoch 01/8] step 26150/54844, avg_loss=0.000307, elapsed 5m53s, eta 6m28s
+  [Epoch 01/8] step 26950/54844, avg_loss=0.000298, elapsed 6m3s, eta 6m16s
+  [Epoch 01/8] step 27750/54844, avg_loss=0.000290, elapsed 6m14s, eta 6m5s
+  [Epoch 01/8] step 28550/54844, avg_loss=0.000283, elapsed 6m24s, eta 5m53s
+  [Epoch 01/8] step 29350/54844, avg_loss=0.000276, elapsed 6m34s, eta 5m42s
+  [Epoch 01/8] step 30150/54844, avg_loss=0.000269, elapsed 6m44s, eta 5m31s
+  [Epoch 01/8] step 30950/54844, avg_loss=0.000263, elapsed 6m54s, eta 5m20s
+  [Epoch 01/8] step 31750/54844, avg_loss=0.000256, elapsed 7m4s, eta 5m9s
+  [Epoch 01/8] step 32550/54844, avg_loss=0.000251, elapsed 7m14s, eta 4m58s
+  [Epoch 01/8] step 33350/54844, avg_loss=0.000245, elapsed 7m25s, eta 4m47s
+  [Epoch 01/8] step 34150/54844, avg_loss=0.000240, elapsed 7m35s, eta 4m35s
+  [Epoch 01/8] step 34950/54844, avg_loss=0.000235, elapsed 7m45s, eta 4m25s
+  [Epoch 01/8] step 35750/54844, avg_loss=0.000230, elapsed 7m55s, eta 4m14s
+  [Epoch 01/8] step 36550/54844, avg_loss=0.000226, elapsed 8m5s, eta 4m3s
+  [Epoch 01/8] step 37350/54844, avg_loss=0.000221, elapsed 8m15s, eta 3m52s
+  [Epoch 01/8] step 38150/54844, avg_loss=0.000217, elapsed 8m25s, eta 3m41s
+  [Epoch 01/8] step 38950/54844, avg_loss=0.000213, elapsed 8m35s, eta 3m30s
+  [Epoch 01/8] step 39750/54844, avg_loss=0.000209, elapsed 8m45s, eta 3m19s
+  [Epoch 01/8] step 40550/54844, avg_loss=0.000205, elapsed 8m55s, eta 3m9s
+  [Epoch 01/8] step 41350/54844, avg_loss=0.000202, elapsed 9m5s, eta 2m58s
+  [Epoch 01/8] step 42150/54844, avg_loss=0.000199, elapsed 9m15s, eta 2m47s
+  [Epoch 01/8] step 42950/54844, avg_loss=0.000195, elapsed 9m26s, eta 2m37s
+  [Epoch 01/8] step 43750/54844, avg_loss=0.000192, elapsed 9m36s, eta 2m26s
+  [Epoch 01/8] step 44550/54844, avg_loss=0.000189, elapsed 9m46s, eta 2m15s
+  [Epoch 01/8] step 45350/54844, avg_loss=0.000186, elapsed 9m57s, eta 2m5s
+  [Epoch 01/8] step 46150/54844, avg_loss=0.000183, elapsed 10m7s, eta 1m54s
+  [Epoch 01/8] step 46950/54844, avg_loss=0.000180, elapsed 10m17s, eta 1m44s
+  [Epoch 01/8] step 47750/54844, avg_loss=0.000178, elapsed 10m27s, eta 1m33s
+  [Epoch 01/8] step 48550/54844, avg_loss=0.000175, elapsed 10m37s, eta 1m23s
+  [Epoch 01/8] step 49350/54844, avg_loss=0.000173, elapsed 10m47s, eta 1m12s
+  [Epoch 01/8] step 50150/54844, avg_loss=0.000170, elapsed 10m57s, eta 1m2s
+  [Epoch 01/8] step 50950/54844, avg_loss=0.000168, elapsed 11m7s, eta 51.0s
+  [Epoch 01/8] step 51750/54844, avg_loss=0.000166, elapsed 11m17s, eta 40.5s
+  [Epoch 01/8] step 52550/54844, avg_loss=0.000163, elapsed 11m27s, eta 30.0s
+  [Epoch 01/8] step 53350/54844, avg_loss=0.000161, elapsed 11m38s, eta 19.5s
+  [Epoch 01/8] step 54150/54844, avg_loss=0.000159, elapsed 11m48s, eta 9.1s
+[Epoch 01] train_loss=0.000158, val_loss=0.000017, val_r2=-0.031721
+  [Epoch 02/8] step 500/54844, avg_loss=0.000022, elapsed 10.1s, eta 18m15s
+  [Epoch 02/8] step 1300/54844, avg_loss=0.000022, elapsed 20.7s, eta 14m11s
+  [Epoch 02/8] step 2100/54844, avg_loss=0.000022, elapsed 30.9s, eta 12m56s
+  [Epoch 02/8] step 2900/54844, avg_loss=0.000022, elapsed 41.0s, eta 12m15s
+  [Epoch 02/8] step 3700/54844, avg_loss=0.000022, elapsed 51.2s, eta 11m47s
+  [Epoch 02/8] step 4450/54844, avg_loss=0.000022, elapsed 1m1s, eta 11m34s
+  [Epoch 02/8] step 5250/54844, avg_loss=0.000022, elapsed 1m11s, eta 11m14s
+  [Epoch 02/8] step 6050/54844, avg_loss=0.000022, elapsed 1m22s, eta 11m0s
+  [Epoch 02/8] step 6850/54844, avg_loss=0.000022, elapsed 1m32s, eta 10m45s
+  [Epoch 02/8] step 7650/54844, avg_loss=0.000022, elapsed 1m42s, eta 10m30s
+  [Epoch 02/8] step 8450/54844, avg_loss=0.000022, elapsed 1m52s, eta 10m16s
+  [Epoch 02/8] step 9250/54844, avg_loss=0.000022, elapsed 2m2s, eta 10m3s
+  [Epoch 02/8] step 10050/54844, avg_loss=0.000022, elapsed 2m12s, eta 9m50s
+  [Epoch 02/8] step 10850/54844, avg_loss=0.000022, elapsed 2m23s, eta 9m38s
+  [Epoch 02/8] step 11650/54844, avg_loss=0.000022, elapsed 2m33s, eta 9m26s
+  [Epoch 02/8] step 12450/54844, avg_loss=0.000022, elapsed 2m43s, eta 9m15s
+  [Epoch 02/8] step 13250/54844, avg_loss=0.000022, elapsed 2m53s, eta 9m4s
+  [Epoch 02/8] step 14050/54844, avg_loss=0.000022, elapsed 3m3s, eta 8m53s
+  [Epoch 02/8] step 14850/54844, avg_loss=0.000022, elapsed 3m14s, eta 8m42s
+  [Epoch 02/8] step 15650/54844, avg_loss=0.000022, elapsed 3m24s, eta 8m31s
+  [Epoch 02/8] step 16450/54844, avg_loss=0.000022, elapsed 3m34s, eta 8m20s
+  [Epoch 02/8] step 17250/54844, avg_loss=0.000022, elapsed 3m44s, eta 8m8s
+  [Epoch 02/8] step 18050/54844, avg_loss=0.000022, elapsed 3m54s, eta 7m58s
+  [Epoch 02/8] step 18850/54844, avg_loss=0.000022, elapsed 4m5s, eta 7m47s
+  [Epoch 02/8] step 19650/54844, avg_loss=0.000022, elapsed 4m15s, eta 7m36s
+  [Epoch 02/8] step 20450/54844, avg_loss=0.000022, elapsed 4m25s, eta 7m26s
+  [Epoch 02/8] step 21250/54844, avg_loss=0.000022, elapsed 4m35s, eta 7m15s
+  [Epoch 02/8] step 22050/54844, avg_loss=0.000022, elapsed 4m45s, eta 7m4s
+  [Epoch 02/8] step 22850/54844, avg_loss=0.000022, elapsed 4m55s, eta 6m53s
+  [Epoch 02/8] step 23650/54844, avg_loss=0.000022, elapsed 5m6s, eta 6m43s
+  [Epoch 02/8] step 24450/54844, avg_loss=0.000022, elapsed 5m16s, eta 6m32s
+  [Epoch 02/8] step 25250/54844, avg_loss=0.000022, elapsed 5m26s, eta 6m22s
+  [Epoch 02/8] step 26050/54844, avg_loss=0.000022, elapsed 5m36s, eta 6m11s
+  [Epoch 02/8] step 26850/54844, avg_loss=0.000022, elapsed 5m46s, eta 6m1s
+  [Epoch 02/8] step 27650/54844, avg_loss=0.000022, elapsed 5m57s, eta 5m51s
+  [Epoch 02/8] step 28450/54844, avg_loss=0.000022, elapsed 6m7s, eta 5m40s
+  [Epoch 02/8] step 29250/54844, avg_loss=0.000022, elapsed 6m17s, eta 5m30s
+  [Epoch 02/8] step 30050/54844, avg_loss=0.000022, elapsed 6m27s, eta 5m19s
+  [Epoch 02/8] step 30850/54844, avg_loss=0.000022, elapsed 6m37s, eta 5m9s
+  [Epoch 02/8] step 31650/54844, avg_loss=0.000022, elapsed 6m47s, eta 4m58s
+  [Epoch 02/8] step 32450/54844, avg_loss=0.000022, elapsed 6m57s, eta 4m48s
+  [Epoch 02/8] step 33250/54844, avg_loss=0.000022, elapsed 7m7s, eta 4m38s
+  [Epoch 02/8] step 34050/54844, avg_loss=0.000022, elapsed 7m17s, eta 4m27s
+  [Epoch 02/8] step 34850/54844, avg_loss=0.000022, elapsed 7m28s, eta 4m17s
+  [Epoch 02/8] step 35650/54844, avg_loss=0.000022, elapsed 7m38s, eta 4m7s
+  [Epoch 02/8] step 36450/54844, avg_loss=0.000022, elapsed 7m48s, eta 3m56s
+  [Epoch 02/8] step 37250/54844, avg_loss=0.000022, elapsed 7m58s, eta 3m46s
+  [Epoch 02/8] step 38050/54844, avg_loss=0.000022, elapsed 8m8s, eta 3m36s
+  [Epoch 02/8] step 38850/54844, avg_loss=0.000022, elapsed 8m18s, eta 3m25s
+  [Epoch 02/8] step 39650/54844, avg_loss=0.000022, elapsed 8m28s, eta 3m15s
+  [Epoch 02/8] step 40450/54844, avg_loss=0.000022, elapsed 8m39s, eta 3m5s
+  [Epoch 02/8] step 41250/54844, avg_loss=0.000022, elapsed 8m49s, eta 2m54s
+  [Epoch 02/8] step 42050/54844, avg_loss=0.000022, elapsed 8m59s, eta 2m44s
+  [Epoch 02/8] step 42700/54844, avg_loss=0.000022, elapsed 9m9s, eta 2m36s
+  [Epoch 02/8] step 43450/54844, avg_loss=0.000022, elapsed 9m20s, eta 2m27s
+  [Epoch 02/8] step 44250/54844, avg_loss=0.000022, elapsed 9m30s, eta 2m16s
+  [Epoch 02/8] step 45050/54844, avg_loss=0.000022, elapsed 9m40s, eta 2m6s
+  [Epoch 02/8] step 45850/54844, avg_loss=0.000022, elapsed 9m50s, eta 1m56s
+  [Epoch 02/8] step 46650/54844, avg_loss=0.000022, elapsed 9m60s, eta 1m45s
+  [Epoch 02/8] step 47450/54844, avg_loss=0.000022, elapsed 10m10s, eta 1m35s
+  [Epoch 02/8] step 48250/54844, avg_loss=0.000022, elapsed 10m20s, eta 1m25s
+  [Epoch 02/8] step 49050/54844, avg_loss=0.000022, elapsed 10m31s, eta 1m14s
+  [Epoch 02/8] step 49850/54844, avg_loss=0.000022, elapsed 10m41s, eta 1m4s
+  [Epoch 02/8] step 50650/54844, avg_loss=0.000022, elapsed 10m51s, eta 53.9s
+  [Epoch 02/8] step 51450/54844, avg_loss=0.000022, elapsed 11m1s, eta 43.6s
+  [Epoch 02/8] step 52250/54844, avg_loss=0.000022, elapsed 11m11s, eta 33.3s
+  [Epoch 02/8] step 53050/54844, avg_loss=0.000022, elapsed 11m21s, eta 23.0s
+  [Epoch 02/8] step 53850/54844, avg_loss=0.000022, elapsed 11m31s, eta 12.8s
+  [Epoch 02/8] step 54650/54844, avg_loss=0.000022, elapsed 11m42s, eta 2.5s
+[Epoch 02] train_loss=0.000022, val_loss=0.000016, val_r2=0.006864
+  [Epoch 03/8] step 700/54844, avg_loss=0.000022, elapsed 10.5s, eta 13m32s
+  [Epoch 03/8] step 1500/54844, avg_loss=0.000022, elapsed 20.7s, eta 12m15s
+  [Epoch 03/8] step 2300/54844, avg_loss=0.000022, elapsed 30.8s, eta 11m44s
+  [Epoch 03/8] step 3100/54844, avg_loss=0.000022, elapsed 41.0s, eta 11m24s
+  [Epoch 03/8] step 3900/54844, avg_loss=0.000022, elapsed 51.3s, eta 11m10s
+  [Epoch 03/8] step 4700/54844, avg_loss=0.000022, elapsed 1m1s, eta 10m56s
+  [Epoch 03/8] step 5500/54844, avg_loss=0.000022, elapsed 1m12s, eta 10m44s
+  [Epoch 03/8] step 6300/54844, avg_loss=0.000022, elapsed 1m22s, eta 10m32s
+  [Epoch 03/8] step 7100/54844, avg_loss=0.000022, elapsed 1m32s, eta 10m20s
+  [Epoch 03/8] step 7900/54844, avg_loss=0.000022, elapsed 1m42s, eta 10m9s
+  [Epoch 03/8] step 8700/54844, avg_loss=0.000022, elapsed 1m53s, eta 9m57s
+  [Epoch 03/8] step 9500/54844, avg_loss=0.000022, elapsed 2m3s, eta 9m47s
+  [Epoch 03/8] step 10300/54844, avg_loss=0.000022, elapsed 2m13s, eta 9m36s
+  [Epoch 03/8] step 11100/54844, avg_loss=0.000022, elapsed 2m23s, eta 9m25s
+  [Epoch 03/8] step 11900/54844, avg_loss=0.000022, elapsed 2m33s, eta 9m14s
+  [Epoch 03/8] step 12700/54844, avg_loss=0.000022, elapsed 2m44s, eta 9m3s
+  [Epoch 03/8] step 13500/54844, avg_loss=0.000022, elapsed 2m54s, eta 8m52s
+  [Epoch 03/8] step 14300/54844, avg_loss=0.000022, elapsed 3m4s, eta 8m42s
+  [Epoch 03/8] step 15100/54844, avg_loss=0.000022, elapsed 3m14s, eta 8m31s
+  [Epoch 03/8] step 15900/54844, avg_loss=0.000022, elapsed 3m24s, eta 8m21s
+  [Epoch 03/8] step 16700/54844, avg_loss=0.000022, elapsed 3m35s, eta 8m11s
+  [Epoch 03/8] step 17500/54844, avg_loss=0.000022, elapsed 3m45s, eta 8m0s
+  [Epoch 03/8] step 18300/54844, avg_loss=0.000022, elapsed 3m55s, eta 7m50s
+  [Epoch 03/8] step 19100/54844, avg_loss=0.000022, elapsed 4m6s, eta 7m40s
+  [Epoch 03/8] step 19900/54844, avg_loss=0.000022, elapsed 4m16s, eta 7m29s
+  [Epoch 03/8] step 20700/54844, avg_loss=0.000022, elapsed 4m26s, eta 7m19s
+  [Epoch 03/8] step 21500/54844, avg_loss=0.000022, elapsed 4m36s, eta 7m8s
+  [Epoch 03/8] step 22300/54844, avg_loss=0.000022, elapsed 4m46s, eta 6m58s
+  [Epoch 03/8] step 23100/54844, avg_loss=0.000022, elapsed 4m56s, eta 6m47s
+  [Epoch 03/8] step 23900/54844, avg_loss=0.000022, elapsed 5m7s, eta 6m37s
+  [Epoch 03/8] step 24700/54844, avg_loss=0.000022, elapsed 5m17s, eta 6m27s
+  [Epoch 03/8] step 25500/54844, avg_loss=0.000022, elapsed 5m27s, eta 6m16s
+  [Epoch 03/8] step 26300/54844, avg_loss=0.000022, elapsed 5m37s, eta 6m6s
+  [Epoch 03/8] step 27100/54844, avg_loss=0.000022, elapsed 5m48s, eta 5m56s
+  [Epoch 03/8] step 27900/54844, avg_loss=0.000022, elapsed 5m58s, eta 5m45s
+  [Epoch 03/8] step 28700/54844, avg_loss=0.000022, elapsed 6m8s, eta 5m35s
+  [Epoch 03/8] step 29500/54844, avg_loss=0.000022, elapsed 6m18s, eta 5m25s
+  [Epoch 03/8] step 30150/54844, avg_loss=0.000022, elapsed 6m28s, eta 5m18s
+  [Epoch 03/8] step 30900/54844, avg_loss=0.000022, elapsed 6m38s, eta 5m9s
+  [Epoch 03/8] step 31700/54844, avg_loss=0.000022, elapsed 6m49s, eta 4m58s
+  [Epoch 03/8] step 32500/54844, avg_loss=0.000022, elapsed 6m59s, eta 4m48s
+  [Epoch 03/8] step 33300/54844, avg_loss=0.000022, elapsed 7m9s, eta 4m37s
+  [Epoch 03/8] step 34100/54844, avg_loss=0.000022, elapsed 7m19s, eta 4m27s
+  [Epoch 03/8] step 34900/54844, avg_loss=0.000022, elapsed 7m29s, eta 4m17s
+  [Epoch 03/8] step 35700/54844, avg_loss=0.000022, elapsed 7m39s, eta 4m6s
+  [Epoch 03/8] step 36500/54844, avg_loss=0.000022, elapsed 7m50s, eta 3m56s
+  [Epoch 03/8] step 37300/54844, avg_loss=0.000022, elapsed 7m60s, eta 3m46s
+  [Epoch 03/8] step 38100/54844, avg_loss=0.000022, elapsed 8m10s, eta 3m35s
+  [Epoch 03/8] step 38900/54844, avg_loss=0.000022, elapsed 8m20s, eta 3m25s
+  [Epoch 03/8] step 39700/54844, avg_loss=0.000022, elapsed 8m30s, eta 3m15s
+  [Epoch 03/8] step 40500/54844, avg_loss=0.000022, elapsed 8m41s, eta 3m4s
+  [Epoch 03/8] step 41300/54844, avg_loss=0.000022, elapsed 8m51s, eta 2m54s
+  [Epoch 03/8] step 42100/54844, avg_loss=0.000022, elapsed 9m1s, eta 2m44s
+  [Epoch 03/8] step 42900/54844, avg_loss=0.000022, elapsed 9m11s, eta 2m33s
+  [Epoch 03/8] step 43700/54844, avg_loss=0.000022, elapsed 9m21s, eta 2m23s
+  [Epoch 03/8] step 44500/54844, avg_loss=0.000022, elapsed 9m32s, eta 2m13s
+  [Epoch 03/8] step 45300/54844, avg_loss=0.000022, elapsed 9m42s, eta 2m3s
+  [Epoch 03/8] step 46100/54844, avg_loss=0.000022, elapsed 9m52s, eta 1m52s
+  [Epoch 03/8] step 46900/54844, avg_loss=0.000022, elapsed 10m2s, eta 1m42s
+  [Epoch 03/8] step 47700/54844, avg_loss=0.000022, elapsed 10m12s, eta 1m32s
+  [Epoch 03/8] step 48500/54844, avg_loss=0.000022, elapsed 10m22s, eta 1m21s
+  [Epoch 03/8] step 49300/54844, avg_loss=0.000022, elapsed 10m32s, eta 1m11s
+  [Epoch 03/8] step 50100/54844, avg_loss=0.000022, elapsed 10m43s, eta 1m1s
+  [Epoch 03/8] step 50900/54844, avg_loss=0.000022, elapsed 10m53s, eta 50.6s
+  [Epoch 03/8] step 51700/54844, avg_loss=0.000022, elapsed 11m3s, eta 40.3s
+  [Epoch 03/8] step 52500/54844, avg_loss=0.000022, elapsed 11m13s, eta 30.1s
+  [Epoch 03/8] step 53300/54844, avg_loss=0.000022, elapsed 11m23s, eta 19.8s
+  [Epoch 03/8] step 54100/54844, avg_loss=0.000022, elapsed 11m33s, eta 9.5s
+[Epoch 03] train_loss=0.000022, val_loss=0.000016, val_r2=0.005543
+  [Epoch 04/8] step 700/54844, avg_loss=0.000021, elapsed 10.4s, eta 13m25s
+  [Epoch 04/8] step 1450/54844, avg_loss=0.000022, elapsed 20.6s, eta 12m39s
+  [Epoch 04/8] step 2250/54844, avg_loss=0.000022, elapsed 30.8s, eta 11m59s
+  [Epoch 04/8] step 3050/54844, avg_loss=0.000021, elapsed 41.0s, eta 11m36s
+  [Epoch 04/8] step 3850/54844, avg_loss=0.000021, elapsed 51.2s, eta 11m18s
+  [Epoch 04/8] step 4650/54844, avg_loss=0.000022, elapsed 1m1s, eta 11m2s
+  [Epoch 04/8] step 5450/54844, avg_loss=0.000022, elapsed 1m12s, eta 10m49s
+  [Epoch 04/8] step 6250/54844, avg_loss=0.000022, elapsed 1m22s, eta 10m36s
+  [Epoch 04/8] step 7050/54844, avg_loss=0.000022, elapsed 1m32s, eta 10m23s
+  [Epoch 04/8] step 7850/54844, avg_loss=0.000022, elapsed 1m42s, eta 10m11s
+  [Epoch 04/8] step 8650/54844, avg_loss=0.000022, elapsed 1m52s, eta 9m60s
+  [Epoch 04/8] step 9450/54844, avg_loss=0.000022, elapsed 2m2s, eta 9m48s
+  [Epoch 04/8] step 10250/54844, avg_loss=0.000022, elapsed 2m13s, eta 9m37s
+  [Epoch 04/8] step 11050/54844, avg_loss=0.000022, elapsed 2m23s, eta 9m26s
+  [Epoch 04/8] step 11850/54844, avg_loss=0.000022, elapsed 2m33s, eta 9m15s
+  [Epoch 04/8] step 12650/54844, avg_loss=0.000022, elapsed 2m43s, eta 9m5s
+  [Epoch 04/8] step 13450/54844, avg_loss=0.000022, elapsed 2m54s, eta 8m55s
+  [Epoch 04/8] step 14250/54844, avg_loss=0.000022, elapsed 3m4s, eta 8m44s
+  [Epoch 04/8] step 15050/54844, avg_loss=0.000021, elapsed 3m14s, eta 8m34s
+  [Epoch 04/8] step 15850/54844, avg_loss=0.000021, elapsed 3m25s, eta 8m24s
+  [Epoch 04/8] step 16650/54844, avg_loss=0.000021, elapsed 3m35s, eta 8m14s
+  [Epoch 04/8] step 17350/54844, avg_loss=0.000021, elapsed 3m46s, eta 8m8s
+  [Epoch 04/8] step 18050/54844, avg_loss=0.000022, elapsed 3m56s, eta 8m1s
+  [Epoch 04/8] step 18850/54844, avg_loss=0.000021, elapsed 4m6s, eta 7m51s
+  [Epoch 04/8] step 19650/54844, avg_loss=0.000021, elapsed 4m17s, eta 7m40s
+  [Epoch 04/8] step 20450/54844, avg_loss=0.000021, elapsed 4m27s, eta 7m29s
+  [Epoch 04/8] step 21250/54844, avg_loss=0.000022, elapsed 4m37s, eta 7m18s
+  [Epoch 04/8] step 22050/54844, avg_loss=0.000022, elapsed 4m48s, eta 7m8s
+  [Epoch 04/8] step 22850/54844, avg_loss=0.000022, elapsed 4m58s, eta 6m57s
+  [Epoch 04/8] step 23650/54844, avg_loss=0.000022, elapsed 5m8s, eta 6m47s
+  [Epoch 04/8] step 24450/54844, avg_loss=0.000022, elapsed 5m19s, eta 6m36s
+  [Epoch 04/8] step 25250/54844, avg_loss=0.000022, elapsed 5m29s, eta 6m25s
+  [Epoch 04/8] step 26050/54844, avg_loss=0.000022, elapsed 5m39s, eta 6m15s
+  [Epoch 04/8] step 26850/54844, avg_loss=0.000022, elapsed 5m49s, eta 6m4s
+  [Epoch 04/8] step 27650/54844, avg_loss=0.000022, elapsed 5m60s, eta 5m54s
+  [Epoch 04/8] step 28450/54844, avg_loss=0.000022, elapsed 6m10s, eta 5m43s
+  [Epoch 04/8] step 29250/54844, avg_loss=0.000022, elapsed 6m20s, eta 5m33s
+  [Epoch 04/8] step 30050/54844, avg_loss=0.000022, elapsed 6m30s, eta 5m22s
+  [Epoch 04/8] step 30850/54844, avg_loss=0.000022, elapsed 6m40s, eta 5m11s
+  [Epoch 04/8] step 31650/54844, avg_loss=0.000022, elapsed 6m51s, eta 5m1s
+  [Epoch 04/8] step 32450/54844, avg_loss=0.000022, elapsed 7m1s, eta 4m51s
+  [Epoch 04/8] step 33250/54844, avg_loss=0.000022, elapsed 7m11s, eta 4m40s
+  [Epoch 04/8] step 34050/54844, avg_loss=0.000022, elapsed 7m21s, eta 4m30s
+  [Epoch 04/8] step 34850/54844, avg_loss=0.000022, elapsed 7m32s, eta 4m19s
+  [Epoch 04/8] step 35650/54844, avg_loss=0.000022, elapsed 7m42s, eta 4m9s
+  [Epoch 04/8] step 36450/54844, avg_loss=0.000022, elapsed 7m52s, eta 3m58s
+  [Epoch 04/8] step 37250/54844, avg_loss=0.000022, elapsed 8m2s, eta 3m48s
+  [Epoch 04/8] step 38050/54844, avg_loss=0.000022, elapsed 8m12s, eta 3m37s
+  [Epoch 04/8] step 38850/54844, avg_loss=0.000022, elapsed 8m23s, eta 3m27s
+  [Epoch 04/8] step 39650/54844, avg_loss=0.000022, elapsed 8m33s, eta 3m17s
+  [Epoch 04/8] step 40450/54844, avg_loss=0.000022, elapsed 8m43s, eta 3m6s
+  [Epoch 04/8] step 41250/54844, avg_loss=0.000022, elapsed 8m53s, eta 2m56s
+  [Epoch 04/8] step 42050/54844, avg_loss=0.000022, elapsed 9m3s, eta 2m45s
+  [Epoch 04/8] step 42850/54844, avg_loss=0.000022, elapsed 9m14s, eta 2m35s
+  [Epoch 04/8] step 43650/54844, avg_loss=0.000022, elapsed 9m24s, eta 2m25s
+  [Epoch 04/8] step 44450/54844, avg_loss=0.000022, elapsed 9m34s, eta 2m14s
+  [Epoch 04/8] step 45250/54844, avg_loss=0.000022, elapsed 9m45s, eta 2m4s
+  [Epoch 04/8] step 46050/54844, avg_loss=0.000022, elapsed 9m55s, eta 1m54s
+  [Epoch 04/8] step 46850/54844, avg_loss=0.000022, elapsed 10m5s, eta 1m43s
+  [Epoch 04/8] step 47650/54844, avg_loss=0.000022, elapsed 10m15s, eta 1m33s
+  [Epoch 04/8] step 48450/54844, avg_loss=0.000022, elapsed 10m25s, eta 1m23s
+  [Epoch 04/8] step 49250/54844, avg_loss=0.000022, elapsed 10m35s, eta 1m12s
+  [Epoch 04/8] step 50050/54844, avg_loss=0.000022, elapsed 10m46s, eta 1m2s
+  [Epoch 04/8] step 50850/54844, avg_loss=0.000022, elapsed 10m56s, eta 51.5s
+  [Epoch 04/8] step 51650/54844, avg_loss=0.000022, elapsed 11m6s, eta 41.2s
+  [Epoch 04/8] step 52450/54844, avg_loss=0.000022, elapsed 11m16s, eta 30.9s
+  [Epoch 04/8] step 53250/54844, avg_loss=0.000022, elapsed 11m26s, eta 20.5s
+  [Epoch 04/8] step 54050/54844, avg_loss=0.000022, elapsed 11m37s, eta 10.2s
+[Epoch 04] train_loss=0.000022, val_loss=0.000016, val_r2=0.008132
+  [Epoch 05/8] step 700/54844, avg_loss=0.000022, elapsed 10.3s, eta 13m18s
+  [Epoch 05/8] step 1500/54844, avg_loss=0.000022, elapsed 20.6s, eta 12m13s
+  [Epoch 05/8] step 2300/54844, avg_loss=0.000022, elapsed 30.8s, eta 11m43s
+  [Epoch 05/8] step 3100/54844, avg_loss=0.000022, elapsed 41.1s, eta 11m27s
+  [Epoch 05/8] step 3900/54844, avg_loss=0.000022, elapsed 51.3s, eta 11m11s
+  [Epoch 05/8] step 4650/54844, avg_loss=0.000022, elapsed 1m2s, eta 11m8s
+  [Epoch 05/8] step 5350/54844, avg_loss=0.000022, elapsed 1m12s, eta 11m9s
+  [Epoch 05/8] step 6150/54844, avg_loss=0.000022, elapsed 1m23s, eta 10m55s
+  [Epoch 05/8] step 6950/54844, avg_loss=0.000022, elapsed 1m33s, eta 10m40s
+  [Epoch 05/8] step 7750/54844, avg_loss=0.000022, elapsed 1m43s, eta 10m27s
+  [Epoch 05/8] step 8550/54844, avg_loss=0.000022, elapsed 1m53s, eta 10m14s
+  [Epoch 05/8] step 9350/54844, avg_loss=0.000022, elapsed 2m4s, eta 10m2s
+  [Epoch 05/8] step 10150/54844, avg_loss=0.000022, elapsed 2m14s, eta 9m50s
+  [Epoch 05/8] step 10950/54844, avg_loss=0.000022, elapsed 2m24s, eta 9m38s
+  [Epoch 05/8] step 11750/54844, avg_loss=0.000022, elapsed 2m34s, eta 9m27s
+  [Epoch 05/8] step 12550/54844, avg_loss=0.000022, elapsed 2m45s, eta 9m15s
+  [Epoch 05/8] step 13350/54844, avg_loss=0.000022, elapsed 2m55s, eta 9m4s
+  [Epoch 05/8] step 14150/54844, avg_loss=0.000022, elapsed 3m5s, eta 8m52s
+  [Epoch 05/8] step 14950/54844, avg_loss=0.000022, elapsed 3m15s, eta 8m41s
+  [Epoch 05/8] step 15750/54844, avg_loss=0.000022, elapsed 3m25s, eta 8m30s
+  [Epoch 05/8] step 16550/54844, avg_loss=0.000022, elapsed 3m35s, eta 8m19s
+  [Epoch 05/8] step 17350/54844, avg_loss=0.000022, elapsed 3m46s, eta 8m8s
+  [Epoch 05/8] step 18150/54844, avg_loss=0.000022, elapsed 3m56s, eta 7m57s
+  [Epoch 05/8] step 18950/54844, avg_loss=0.000022, elapsed 4m6s, eta 7m46s
+  [Epoch 05/8] step 19750/54844, avg_loss=0.000022, elapsed 4m16s, eta 7m35s
+  [Epoch 05/8] step 20550/54844, avg_loss=0.000022, elapsed 4m26s, eta 7m24s
+  [Epoch 05/8] step 21350/54844, avg_loss=0.000022, elapsed 4m37s, eta 7m14s
+  [Epoch 05/8] step 22150/54844, avg_loss=0.000022, elapsed 4m47s, eta 7m3s
+  [Epoch 05/8] step 22950/54844, avg_loss=0.000022, elapsed 4m57s, eta 6m52s
+  [Epoch 05/8] step 23750/54844, avg_loss=0.000022, elapsed 5m7s, eta 6m42s
+  [Epoch 05/8] step 24550/54844, avg_loss=0.000022, elapsed 5m17s, eta 6m31s
+  [Epoch 05/8] step 25350/54844, avg_loss=0.000022, elapsed 5m27s, eta 6m21s
+  [Epoch 05/8] step 26150/54844, avg_loss=0.000022, elapsed 5m37s, eta 6m10s
+  [Epoch 05/8] step 26950/54844, avg_loss=0.000022, elapsed 5m48s, eta 5m60s
+  [Epoch 05/8] step 27750/54844, avg_loss=0.000022, elapsed 5m58s, eta 5m49s
+  [Epoch 05/8] step 28550/54844, avg_loss=0.000022, elapsed 6m8s, eta 5m39s
+  [Epoch 05/8] step 29300/54844, avg_loss=0.000022, elapsed 6m18s, eta 5m29s
+  [Epoch 05/8] step 30100/54844, avg_loss=0.000022, elapsed 6m28s, eta 5m19s
+  [Epoch 05/8] step 30900/54844, avg_loss=0.000022, elapsed 6m38s, eta 5m9s
+  [Epoch 05/8] step 31700/54844, avg_loss=0.000022, elapsed 6m48s, eta 4m58s
+  [Epoch 05/8] step 32500/54844, avg_loss=0.000022, elapsed 6m59s, eta 4m48s
+  [Epoch 05/8] step 33300/54844, avg_loss=0.000022, elapsed 7m9s, eta 4m37s
+  [Epoch 05/8] step 34100/54844, avg_loss=0.000022, elapsed 7m19s, eta 4m27s
+  [Epoch 05/8] step 34900/54844, avg_loss=0.000022, elapsed 7m29s, eta 4m17s
+  [Epoch 05/8] step 35700/54844, avg_loss=0.000022, elapsed 7m39s, eta 4m6s
+  [Epoch 05/8] step 36500/54844, avg_loss=0.000022, elapsed 7m49s, eta 3m56s
+  [Epoch 05/8] step 37300/54844, avg_loss=0.000022, elapsed 7m60s, eta 3m46s
+  [Epoch 05/8] step 38100/54844, avg_loss=0.000022, elapsed 8m10s, eta 3m35s
+  [Epoch 05/8] step 38900/54844, avg_loss=0.000022, elapsed 8m20s, eta 3m25s
+  [Epoch 05/8] step 39700/54844, avg_loss=0.000022, elapsed 8m31s, eta 3m15s
+  [Epoch 05/8] step 40500/54844, avg_loss=0.000022, elapsed 8m41s, eta 3m4s
+  [Epoch 05/8] step 41300/54844, avg_loss=0.000022, elapsed 8m51s, eta 2m54s
+  [Epoch 05/8] step 42100/54844, avg_loss=0.000022, elapsed 9m1s, eta 2m44s
+  [Epoch 05/8] step 42900/54844, avg_loss=0.000022, elapsed 9m11s, eta 2m33s
+  [Epoch 05/8] step 43700/54844, avg_loss=0.000022, elapsed 9m21s, eta 2m23s
+  [Epoch 05/8] step 44500/54844, avg_loss=0.000022, elapsed 9m32s, eta 2m13s
+  [Epoch 05/8] step 45300/54844, avg_loss=0.000022, elapsed 9m42s, eta 2m3s
+  [Epoch 05/8] step 46100/54844, avg_loss=0.000022, elapsed 9m52s, eta 1m52s
+  [Epoch 05/8] step 46900/54844, avg_loss=0.000022, elapsed 10m2s, eta 1m42s
+  [Epoch 05/8] step 47700/54844, avg_loss=0.000022, elapsed 10m12s, eta 1m32s
+  [Epoch 05/8] step 48500/54844, avg_loss=0.000022, elapsed 10m23s, eta 1m21s
+  [Epoch 05/8] step 49300/54844, avg_loss=0.000022, elapsed 10m33s, eta 1m11s
+  [Epoch 05/8] step 50100/54844, avg_loss=0.000022, elapsed 10m43s, eta 1m1s
+  [Epoch 05/8] step 50900/54844, avg_loss=0.000022, elapsed 10m53s, eta 50.6s
+  [Epoch 05/8] step 51600/54844, avg_loss=0.000022, elapsed 11m4s, eta 41.7s
+  [Epoch 05/8] step 52300/54844, avg_loss=0.000022, elapsed 11m14s, eta 32.8s
+  [Epoch 05/8] step 53100/54844, avg_loss=0.000022, elapsed 11m24s, eta 22.5s
+  [Epoch 05/8] step 53900/54844, avg_loss=0.000022, elapsed 11m34s, eta 12.2s
+  [Epoch 05/8] step 54700/54844, avg_loss=0.000022, elapsed 11m44s, eta 1.9s
+[Epoch 05] train_loss=0.000022, val_loss=0.000017, val_r2=-0.001495
+  [Epoch 06/8] step 700/54844, avg_loss=0.000021, elapsed 10.5s, eta 13m29s
+  [Epoch 06/8] step 1500/54844, avg_loss=0.000021, elapsed 20.5s, eta 12m11s
+  [Epoch 06/8] step 2300/54844, avg_loss=0.000022, elapsed 30.8s, eta 11m44s
+  [Epoch 06/8] step 3100/54844, avg_loss=0.000021, elapsed 41.0s, eta 11m24s
+  [Epoch 06/8] step 3900/54844, avg_loss=0.000021, elapsed 51.1s, eta 11m8s
+  [Epoch 06/8] step 4700/54844, avg_loss=0.000021, elapsed 1m1s, eta 10m53s
+  [Epoch 06/8] step 5500/54844, avg_loss=0.000021, elapsed 1m11s, eta 10m40s
+  [Epoch 06/8] step 6300/54844, avg_loss=0.000021, elapsed 1m21s, eta 10m28s
+  [Epoch 06/8] step 7100/54844, avg_loss=0.000021, elapsed 1m32s, eta 10m17s
+  [Epoch 06/8] step 7900/54844, avg_loss=0.000021, elapsed 1m42s, eta 10m6s
+  [Epoch 06/8] step 8700/54844, avg_loss=0.000021, elapsed 1m52s, eta 9m56s
+  [Epoch 06/8] step 9500/54844, avg_loss=0.000021, elapsed 2m2s, eta 9m45s
+  [Epoch 06/8] step 10300/54844, avg_loss=0.000021, elapsed 2m13s, eta 9m33s
+  [Epoch 06/8] step 11100/54844, avg_loss=0.000021, elapsed 2m23s, eta 9m23s
+  [Epoch 06/8] step 11900/54844, avg_loss=0.000021, elapsed 2m33s, eta 9m12s
+  [Epoch 06/8] step 12700/54844, avg_loss=0.000021, elapsed 2m43s, eta 9m1s
+  [Epoch 06/8] step 13500/54844, avg_loss=0.000021, elapsed 2m53s, eta 8m51s
+  [Epoch 06/8] step 14300/54844, avg_loss=0.000021, elapsed 3m4s, eta 8m41s
+  [Epoch 06/8] step 15100/54844, avg_loss=0.000021, elapsed 3m14s, eta 8m31s
+  [Epoch 06/8] step 15900/54844, avg_loss=0.000021, elapsed 3m24s, eta 8m21s
+  [Epoch 06/8] step 16700/54844, avg_loss=0.000021, elapsed 3m35s, eta 8m11s
+  [Epoch 06/8] step 17500/54844, avg_loss=0.000021, elapsed 3m45s, eta 8m0s
+  [Epoch 06/8] step 18300/54844, avg_loss=0.000021, elapsed 3m55s, eta 7m49s
+  [Epoch 06/8] step 19100/54844, avg_loss=0.000021, elapsed 4m5s, eta 7m39s
+  [Epoch 06/8] step 19900/54844, avg_loss=0.000021, elapsed 4m15s, eta 7m28s
+  [Epoch 06/8] step 20700/54844, avg_loss=0.000021, elapsed 4m26s, eta 7m18s
+  [Epoch 06/8] step 21500/54844, avg_loss=0.000021, elapsed 4m36s, eta 7m8s
+  [Epoch 06/8] step 22300/54844, avg_loss=0.000022, elapsed 4m46s, eta 6m57s
+  [Epoch 06/8] step 23100/54844, avg_loss=0.000022, elapsed 4m56s, eta 6m47s
+  [Epoch 06/8] step 23900/54844, avg_loss=0.000021, elapsed 5m6s, eta 6m37s
+  [Epoch 06/8] step 24700/54844, avg_loss=0.000021, elapsed 5m17s, eta 6m26s
+  [Epoch 06/8] step 25500/54844, avg_loss=0.000021, elapsed 5m27s, eta 6m16s
+  [Epoch 06/8] step 26300/54844, avg_loss=0.000021, elapsed 5m37s, eta 6m6s
+  [Epoch 06/8] step 27100/54844, avg_loss=0.000021, elapsed 5m47s, eta 5m55s
+  [Epoch 06/8] step 27900/54844, avg_loss=0.000022, elapsed 5m57s, eta 5m45s
+  [Epoch 06/8] step 28700/54844, avg_loss=0.000021, elapsed 6m7s, eta 5m35s
+  [Epoch 06/8] step 29500/54844, avg_loss=0.000021, elapsed 6m18s, eta 5m24s
+  [Epoch 06/8] step 30300/54844, avg_loss=0.000021, elapsed 6m28s, eta 5m14s
+  [Epoch 06/8] step 31100/54844, avg_loss=0.000021, elapsed 6m38s, eta 5m4s
+  [Epoch 06/8] step 31900/54844, avg_loss=0.000021, elapsed 6m48s, eta 4m54s
+  [Epoch 06/8] step 32700/54844, avg_loss=0.000021, elapsed 6m58s, eta 4m43s
+  [Epoch 06/8] step 33500/54844, avg_loss=0.000021, elapsed 7m8s, eta 4m33s
+  [Epoch 06/8] step 34300/54844, avg_loss=0.000021, elapsed 7m19s, eta 4m23s
+  [Epoch 06/8] step 35100/54844, avg_loss=0.000022, elapsed 7m29s, eta 4m12s
+  [Epoch 06/8] step 35900/54844, avg_loss=0.000022, elapsed 7m39s, eta 4m2s
+  [Epoch 06/8] step 36700/54844, avg_loss=0.000022, elapsed 7m49s, eta 3m52s
+  [Epoch 06/8] step 37500/54844, avg_loss=0.000022, elapsed 7m59s, eta 3m42s
+  [Epoch 06/8] step 38300/54844, avg_loss=0.000022, elapsed 8m10s, eta 3m31s
+  [Epoch 06/8] step 39050/54844, avg_loss=0.000022, elapsed 8m20s, eta 3m22s
+  [Epoch 06/8] step 39750/54844, avg_loss=0.000022, elapsed 8m30s, eta 3m14s
+  [Epoch 06/8] step 40550/54844, avg_loss=0.000022, elapsed 8m41s, eta 3m4s
+  [Epoch 06/8] step 41350/54844, avg_loss=0.000022, elapsed 8m51s, eta 2m53s
+  [Epoch 06/8] step 42150/54844, avg_loss=0.000022, elapsed 9m1s, eta 2m43s
+  [Epoch 06/8] step 42950/54844, avg_loss=0.000022, elapsed 9m11s, eta 2m33s
+  [Epoch 06/8] step 43750/54844, avg_loss=0.000022, elapsed 9m22s, eta 2m22s
+  [Epoch 06/8] step 44550/54844, avg_loss=0.000022, elapsed 9m32s, eta 2m12s
+  [Epoch 06/8] step 45350/54844, avg_loss=0.000022, elapsed 9m42s, eta 2m2s
+  [Epoch 06/8] step 46150/54844, avg_loss=0.000022, elapsed 9m52s, eta 1m52s
+  [Epoch 06/8] step 46950/54844, avg_loss=0.000022, elapsed 10m2s, eta 1m41s
+  [Epoch 06/8] step 47750/54844, avg_loss=0.000022, elapsed 10m13s, eta 1m31s
+  [Epoch 06/8] step 48550/54844, avg_loss=0.000022, elapsed 10m23s, eta 1m21s
+  [Epoch 06/8] step 49350/54844, avg_loss=0.000022, elapsed 10m33s, eta 1m10s
+  [Epoch 06/8] step 50150/54844, avg_loss=0.000022, elapsed 10m43s, eta 1m0s
+  [Epoch 06/8] step 50950/54844, avg_loss=0.000022, elapsed 10m54s, eta 50.0s
+  [Epoch 06/8] step 51750/54844, avg_loss=0.000022, elapsed 11m4s, eta 39.7s
+  [Epoch 06/8] step 52550/54844, avg_loss=0.000022, elapsed 11m14s, eta 29.4s
+  [Epoch 06/8] step 53350/54844, avg_loss=0.000022, elapsed 11m25s, eta 19.2s
+  [Epoch 06/8] step 54150/54844, avg_loss=0.000022, elapsed 11m35s, eta 8.9s
+[Epoch 06] train_loss=0.000022, val_loss=0.000016, val_r2=0.004444
+  [Epoch 07/8] step 700/54844, avg_loss=0.000021, elapsed 10.5s, eta 13m33s
+  [Epoch 07/8] step 1500/54844, avg_loss=0.000022, elapsed 20.7s, eta 12m15s
+  [Epoch 07/8] step 2300/54844, avg_loss=0.000022, elapsed 30.8s, eta 11m44s
+  [Epoch 07/8] step 3100/54844, avg_loss=0.000022, elapsed 41.0s, eta 11m25s
+  [Epoch 07/8] step 3900/54844, avg_loss=0.000022, elapsed 51.3s, eta 11m10s
+  [Epoch 07/8] step 4700/54844, avg_loss=0.000022, elapsed 1m2s, eta 10m57s
+  [Epoch 07/8] step 5500/54844, avg_loss=0.000022, elapsed 1m12s, eta 10m43s
+  [Epoch 07/8] step 6300/54844, avg_loss=0.000022, elapsed 1m22s, eta 10m33s
+  [Epoch 07/8] step 7100/54844, avg_loss=0.000022, elapsed 1m32s, eta 10m20s
+  [Epoch 07/8] step 7900/54844, avg_loss=0.000022, elapsed 1m42s, eta 10m9s
+  [Epoch 07/8] step 8700/54844, avg_loss=0.000022, elapsed 1m53s, eta 9m57s
+  [Epoch 07/8] step 9500/54844, avg_loss=0.000022, elapsed 2m3s, eta 9m46s
+  [Epoch 07/8] step 10300/54844, avg_loss=0.000022, elapsed 2m13s, eta 9m35s
+  [Epoch 07/8] step 11100/54844, avg_loss=0.000022, elapsed 2m23s, eta 9m25s
+  [Epoch 07/8] step 11900/54844, avg_loss=0.000022, elapsed 2m33s, eta 9m13s
+  [Epoch 07/8] step 12700/54844, avg_loss=0.000022, elapsed 2m44s, eta 9m3s
+  [Epoch 07/8] step 13500/54844, avg_loss=0.000022, elapsed 2m54s, eta 8m52s
+  [Epoch 07/8] step 14300/54844, avg_loss=0.000022, elapsed 3m4s, eta 8m41s
+  [Epoch 07/8] step 15100/54844, avg_loss=0.000022, elapsed 3m14s, eta 8m31s
+  [Epoch 07/8] step 15900/54844, avg_loss=0.000022, elapsed 3m24s, eta 8m21s
+  [Epoch 07/8] step 16700/54844, avg_loss=0.000022, elapsed 3m34s, eta 8m10s
+  [Epoch 07/8] step 17500/54844, avg_loss=0.000022, elapsed 3m45s, eta 7m59s
+  [Epoch 07/8] step 18300/54844, avg_loss=0.000022, elapsed 3m55s, eta 7m49s
+  [Epoch 07/8] step 19100/54844, avg_loss=0.000022, elapsed 4m5s, eta 7m38s
+  [Epoch 07/8] step 19900/54844, avg_loss=0.000022, elapsed 4m15s, eta 7m28s
+  [Epoch 07/8] step 20700/54844, avg_loss=0.000022, elapsed 4m25s, eta 7m17s
+  [Epoch 07/8] step 21500/54844, avg_loss=0.000022, elapsed 4m35s, eta 7m7s
+  [Epoch 07/8] step 22300/54844, avg_loss=0.000022, elapsed 4m45s, eta 6m56s
+  [Epoch 07/8] step 23100/54844, avg_loss=0.000022, elapsed 4m55s, eta 6m46s
+  [Epoch 07/8] step 23900/54844, avg_loss=0.000022, elapsed 5m5s, eta 6m35s
+  [Epoch 07/8] step 24700/54844, avg_loss=0.000022, elapsed 5m16s, eta 6m25s
+  [Epoch 07/8] step 25500/54844, avg_loss=0.000022, elapsed 5m26s, eta 6m15s
+  [Epoch 07/8] step 26250/54844, avg_loss=0.000022, elapsed 5m36s, eta 6m6s
+  [Epoch 07/8] step 26900/54844, avg_loss=0.000022, elapsed 5m46s, eta 5m60s
+  [Epoch 07/8] step 27650/54844, avg_loss=0.000022, elapsed 5m56s, eta 5m51s
+  [Epoch 07/8] step 28450/54844, avg_loss=0.000022, elapsed 6m7s, eta 5m40s
+  [Epoch 07/8] step 29250/54844, avg_loss=0.000022, elapsed 6m17s, eta 5m30s
+  [Epoch 07/8] step 30050/54844, avg_loss=0.000022, elapsed 6m27s, eta 5m20s
+  [Epoch 07/8] step 30850/54844, avg_loss=0.000022, elapsed 6m38s, eta 5m9s
+  [Epoch 07/8] step 31650/54844, avg_loss=0.000022, elapsed 6m48s, eta 4m59s
+  [Epoch 07/8] step 32450/54844, avg_loss=0.000022, elapsed 6m58s, eta 4m49s
+  [Epoch 07/8] step 33250/54844, avg_loss=0.000022, elapsed 7m9s, eta 4m38s
+  [Epoch 07/8] step 34050/54844, avg_loss=0.000022, elapsed 7m19s, eta 4m28s
+  [Epoch 07/8] step 34850/54844, avg_loss=0.000022, elapsed 7m29s, eta 4m18s
+  [Epoch 07/8] step 35650/54844, avg_loss=0.000022, elapsed 7m40s, eta 4m8s
+  [Epoch 07/8] step 36450/54844, avg_loss=0.000022, elapsed 7m50s, eta 3m57s
+  [Epoch 07/8] step 37250/54844, avg_loss=0.000022, elapsed 8m0s, eta 3m47s
+  [Epoch 07/8] step 38050/54844, avg_loss=0.000022, elapsed 8m11s, eta 3m37s
+  [Epoch 07/8] step 38850/54844, avg_loss=0.000022, elapsed 8m21s, eta 3m26s
+  [Epoch 07/8] step 39650/54844, avg_loss=0.000022, elapsed 8m32s, eta 3m16s
+  [Epoch 07/8] step 40450/54844, avg_loss=0.000022, elapsed 8m42s, eta 3m6s
+  [Epoch 07/8] step 41250/54844, avg_loss=0.000022, elapsed 8m53s, eta 2m56s
+  [Epoch 07/8] step 42050/54844, avg_loss=0.000022, elapsed 9m3s, eta 2m45s
+  [Epoch 07/8] step 42850/54844, avg_loss=0.000022, elapsed 9m13s, eta 2m35s
+  [Epoch 07/8] step 43650/54844, avg_loss=0.000022, elapsed 9m24s, eta 2m25s
+  [Epoch 07/8] step 44450/54844, avg_loss=0.000022, elapsed 9m34s, eta 2m14s
+  [Epoch 07/8] step 45250/54844, avg_loss=0.000022, elapsed 9m44s, eta 2m4s
+  [Epoch 07/8] step 46050/54844, avg_loss=0.000022, elapsed 9m54s, eta 1m53s
+  [Epoch 07/8] step 46850/54844, avg_loss=0.000022, elapsed 10m4s, eta 1m43s
+  [Epoch 07/8] step 47650/54844, avg_loss=0.000022, elapsed 10m15s, eta 1m33s
+  [Epoch 07/8] step 48450/54844, avg_loss=0.000022, elapsed 10m25s, eta 1m22s
+  [Epoch 07/8] step 49250/54844, avg_loss=0.000022, elapsed 10m35s, eta 1m12s
+  [Epoch 07/8] step 50050/54844, avg_loss=0.000022, elapsed 10m45s, eta 1m2s
+  [Epoch 07/8] step 50850/54844, avg_loss=0.000022, elapsed 10m56s, eta 51.5s
+  [Epoch 07/8] step 51650/54844, avg_loss=0.000022, elapsed 11m6s, eta 41.2s
+  [Epoch 07/8] step 52450/54844, avg_loss=0.000022, elapsed 11m16s, eta 30.8s
+  [Epoch 07/8] step 53250/54844, avg_loss=0.000022, elapsed 11m26s, eta 20.5s
+  [Epoch 07/8] step 54050/54844, avg_loss=0.000022, elapsed 11m36s, eta 10.2s
+[Epoch 07] train_loss=0.000022, val_loss=0.000016, val_r2=0.011685
+  [Epoch 08/8] step 700/54844, avg_loss=0.000022, elapsed 10.6s, eta 13m39s
+  [Epoch 08/8] step 1500/54844, avg_loss=0.000022, elapsed 20.7s, eta 12m16s
+  [Epoch 08/8] step 2300/54844, avg_loss=0.000022, elapsed 30.8s, eta 11m45s
+  [Epoch 08/8] step 3100/54844, avg_loss=0.000022, elapsed 40.9s, eta 11m23s
+  [Epoch 08/8] step 3900/54844, avg_loss=0.000022, elapsed 51.0s, eta 11m6s
+  [Epoch 08/8] step 4700/54844, avg_loss=0.000022, elapsed 1m1s, eta 10m53s
+  [Epoch 08/8] step 5500/54844, avg_loss=0.000021, elapsed 1m11s, eta 10m40s
+  [Epoch 08/8] step 6300/54844, avg_loss=0.000021, elapsed 1m21s, eta 10m27s
+  [Epoch 08/8] step 7100/54844, avg_loss=0.000021, elapsed 1m32s, eta 10m16s
+  [Epoch 08/8] step 7900/54844, avg_loss=0.000021, elapsed 1m42s, eta 10m5s
+  [Epoch 08/8] step 8700/54844, avg_loss=0.000021, elapsed 1m52s, eta 9m53s
+  [Epoch 08/8] step 9500/54844, avg_loss=0.000021, elapsed 2m2s, eta 9m42s
+  [Epoch 08/8] step 10300/54844, avg_loss=0.000021, elapsed 2m12s, eta 9m31s
+  [Epoch 08/8] step 11100/54844, avg_loss=0.000022, elapsed 2m22s, eta 9m20s
+  [Epoch 08/8] step 11900/54844, avg_loss=0.000021, elapsed 2m32s, eta 9m10s
+  [Epoch 08/8] step 12700/54844, avg_loss=0.000022, elapsed 2m43s, eta 8m60s
+  [Epoch 08/8] step 13500/54844, avg_loss=0.000022, elapsed 2m53s, eta 8m50s
+  [Epoch 08/8] step 14150/54844, avg_loss=0.000022, elapsed 3m3s, eta 8m47s
+  [Epoch 08/8] step 14900/54844, avg_loss=0.000022, elapsed 3m13s, eta 8m39s
+  [Epoch 08/8] step 15700/54844, avg_loss=0.000022, elapsed 3m24s, eta 8m28s
+  [Epoch 08/8] step 16500/54844, avg_loss=0.000022, elapsed 3m34s, eta 8m17s
+  [Epoch 08/8] step 17300/54844, avg_loss=0.000021, elapsed 3m44s, eta 8m6s
+  [Epoch 08/8] step 18100/54844, avg_loss=0.000021, elapsed 3m54s, eta 7m56s
+  [Epoch 08/8] step 18900/54844, avg_loss=0.000022, elapsed 4m5s, eta 7m45s
+  [Epoch 08/8] step 19700/54844, avg_loss=0.000021, elapsed 4m15s, eta 7m35s
+  [Epoch 08/8] step 20500/54844, avg_loss=0.000022, elapsed 4m25s, eta 7m24s
+  [Epoch 08/8] step 21300/54844, avg_loss=0.000021, elapsed 4m35s, eta 7m13s
+  [Epoch 08/8] step 22100/54844, avg_loss=0.000021, elapsed 4m45s, eta 7m3s
+  [Epoch 08/8] step 22900/54844, avg_loss=0.000021, elapsed 4m55s, eta 6m52s
+  [Epoch 08/8] step 23700/54844, avg_loss=0.000021, elapsed 5m6s, eta 6m42s
+  [Epoch 08/8] step 24500/54844, avg_loss=0.000021, elapsed 5m16s, eta 6m31s
+  [Epoch 08/8] step 25300/54844, avg_loss=0.000021, elapsed 5m26s, eta 6m21s
+  [Epoch 08/8] step 26100/54844, avg_loss=0.000021, elapsed 5m36s, eta 6m10s
+  [Epoch 08/8] step 26900/54844, avg_loss=0.000022, elapsed 5m46s, eta 5m60s
+  [Epoch 08/8] step 27700/54844, avg_loss=0.000021, elapsed 5m56s, eta 5m49s
+  [Epoch 08/8] step 28500/54844, avg_loss=0.000022, elapsed 6m7s, eta 5m39s
+  [Epoch 08/8] step 29300/54844, avg_loss=0.000022, elapsed 6m17s, eta 5m28s
+  [Epoch 08/8] step 30100/54844, avg_loss=0.000022, elapsed 6m27s, eta 5m18s
+  [Epoch 08/8] step 30900/54844, avg_loss=0.000022, elapsed 6m37s, eta 5m8s
+  [Epoch 08/8] step 31700/54844, avg_loss=0.000022, elapsed 6m47s, eta 4m57s
+  [Epoch 08/8] step 32500/54844, avg_loss=0.000022, elapsed 6m57s, eta 4m47s
+  [Epoch 08/8] step 33300/54844, avg_loss=0.000022, elapsed 7m7s, eta 4m36s
+  [Epoch 08/8] step 34100/54844, avg_loss=0.000022, elapsed 7m17s, eta 4m26s
+  [Epoch 08/8] step 34900/54844, avg_loss=0.000022, elapsed 7m27s, eta 4m16s
+  [Epoch 08/8] step 35700/54844, avg_loss=0.000022, elapsed 7m38s, eta 4m6s
+  [Epoch 08/8] step 36500/54844, avg_loss=0.000022, elapsed 7m48s, eta 3m55s
+  [Epoch 08/8] step 37300/54844, avg_loss=0.000022, elapsed 7m58s, eta 3m45s
+  [Epoch 08/8] step 38100/54844, avg_loss=0.000022, elapsed 8m9s, eta 3m35s
+  [Epoch 08/8] step 38900/54844, avg_loss=0.000022, elapsed 8m19s, eta 3m24s
+  [Epoch 08/8] step 39700/54844, avg_loss=0.000021, elapsed 8m29s, eta 3m14s
+  [Epoch 08/8] step 40500/54844, avg_loss=0.000021, elapsed 8m39s, eta 3m4s
+  [Epoch 08/8] step 41300/54844, avg_loss=0.000021, elapsed 8m49s, eta 2m54s
+  [Epoch 08/8] step 42100/54844, avg_loss=0.000021, elapsed 8m59s, eta 2m43s
+  [Epoch 08/8] step 42900/54844, avg_loss=0.000021, elapsed 9m9s, eta 2m33s
+  [Epoch 08/8] step 43700/54844, avg_loss=0.000021, elapsed 9m20s, eta 2m23s
+  [Epoch 08/8] step 44500/54844, avg_loss=0.000021, elapsed 9m30s, eta 2m12s
+  [Epoch 08/8] step 45300/54844, avg_loss=0.000021, elapsed 9m40s, eta 2m2s
+  [Epoch 08/8] step 46100/54844, avg_loss=0.000021, elapsed 9m50s, eta 1m52s
+  [Epoch 08/8] step 46900/54844, avg_loss=0.000021, elapsed 10m0s, eta 1m42s
+  [Epoch 08/8] step 47700/54844, avg_loss=0.000021, elapsed 10m11s, eta 1m31s
+  [Epoch 08/8] step 48500/54844, avg_loss=0.000021, elapsed 10m21s, eta 1m21s
+  [Epoch 08/8] step 49300/54844, avg_loss=0.000021, elapsed 10m31s, eta 1m11s
+  [Epoch 08/8] step 50100/54844, avg_loss=0.000021, elapsed 10m41s, eta 1m1s
+  [Epoch 08/8] step 50900/54844, avg_loss=0.000021, elapsed 10m52s, eta 50.5s
+  [Epoch 08/8] step 51700/54844, avg_loss=0.000021, elapsed 11m2s, eta 40.2s
+  [Epoch 08/8] step 52500/54844, avg_loss=0.000021, elapsed 11m12s, eta 30.0s
+  [Epoch 08/8] step 53300/54844, avg_loss=0.000021, elapsed 11m22s, eta 19.8s
+  [Epoch 08/8] step 54100/54844, avg_loss=0.000021, elapsed 11m32s, eta 9.5s
+[Epoch 08] train_loss=0.000021, val_loss=0.000016, val_r2=0.004990
+[Progress] Training done in 1h41m51s
+[Progress] Evaluate ...
+[Progress] Evaluate done in 1m39s
+[Progress] Save artifacts ...
+[Progress] Save artifacts done in 0.4s
+[Done] train runner finished
+{
+  "loss": 1.761698052934579e-05,
+  "mse": 1.7616983313928358e-05,
+  "mae": 0.002775228815153241,
+  "r2": -0.0012850625283395978,
+  "ic": 0.1052626073079267,
+  "ic_ir": 5.860934522965899,
+  "rankic": 0.11092916850370543,
+  "rankic_ir": 5.60619039554884
+}
+
+​

@@ -19,6 +19,13 @@ from .preprocess import (
 )
 from .split import split_frame_by_date
 from .nn_samples import build_nn_samples_from_panel, build_nn_samples_streaming
+from .memmap_dataset import (
+    MemmapCacheConfig,
+    build_memmap_cache,
+    MemmapWindowDataset,
+    memmap_collate_fn,
+    make_memmap_dataloader,
+)
 
 __all__ = [
     "TrainPanelBundle",
@@ -43,4 +50,9 @@ __all__ = [
     "build_nn_samples_from_panel",
     "build_nn_samples_streaming",
     "scan_train_metadata",
+    "MemmapCacheConfig",
+    "build_memmap_cache",
+    "MemmapWindowDataset",
+    "memmap_collate_fn",
+    "make_memmap_dataloader",
 ]

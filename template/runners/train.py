@@ -20,7 +20,10 @@ import torch
 import torch.nn as nn
 
 from template.configs.pipeline_config import PipelineConfig
-from template.configs.presets import make_baseline_lgbm, make_baseline_xgb, make_baseline_nn
+from template.configs.presets import (
+    make_baseline_lgbm, make_baseline_xgb, make_baseline_nn,
+    make_baseline_lstm, make_baseline_attention_gru,
+)
 from template.data.io_parquet import (
     load_train_panel, iter_test_batches, stream_predictions_to_parquet,
     scan_train_metadata,
@@ -39,7 +42,18 @@ from template.data.memmap_dataset import (
     memmap_collate_fn,
     pred_collate_fn,
 )
+from template.data.preprocess_v2 import (
+    fit_medians_streaming,
+    get_standardizer,
+)
+from template.data.memmap_v2 import (
+    build_raw_cache,
+    build_derived_cache,
+    make_v2_dataloader,
+    make_v2_pred_dataloader,
+)
 from template.eval import save_json_report
+from template.eval.reporting import append_leaderboard
 from template.models import build_nn_model
 from template.train import GBDTTrainer, TorchTrainer, get_torch_device
 from template.utils import init_reproducibility
@@ -162,11 +176,16 @@ class _ProgressTracker:
             self._jsonl_fh = None
 
 
-def _load_base_config(family: str):
+def _load_base_config(family: str, model: str | None = None):
     if family == "lgbm":
         return make_baseline_lgbm()
     if family == "xgb":
         return make_baseline_xgb()
+    # NN family with specific model selection
+    if model == "lstm":
+        return make_baseline_lstm()
+    if model == "attention_gru":
+        return make_baseline_attention_gru()
     return make_baseline_nn()
 
 
@@ -255,12 +274,272 @@ def _train_gbdt(cfg) -> dict:
 # ── NN (streaming — low memory) ────────────────────────────────────────────
 
 def _train_nn(cfg) -> dict:
+    use_v2 = getattr(cfg.nn, "use_v2_pipeline", True)
     tracker = _ProgressTracker(cfg)
     try:
+        if use_v2:
+            return _train_nn_v2(cfg, tracker)
         return _train_nn_impl(cfg, tracker)
     finally:
         tracker.close()
 
+
+def _train_nn_v2(cfg, tracker: _ProgressTracker) -> dict:
+    """V2 数据管线：raw cache + derived cache（支持截面 RankGauss）。"""
+    large_cfg = cfg.data.to_large_parquet_config()
+
+    # ── Pass 1: scan metadata (reuse existing) ──
+    tracker.stage_start("Pass1: scan_train_metadata")
+    feature_cols, train_end, val_end = scan_train_metadata(large_cfg)
+    tracker.stage_end("Pass1: scan_train_metadata", features=len(feature_cols))
+
+    # ── Pass 2: fit medians (streaming) ──
+    read_cols = list(large_cfg.id_cols) + feature_cols + [large_cfg.label_col]
+
+    def _train_batches_for_median():
+        for batch in iter_parquet_batches(
+            parquet_path=large_cfg.train_path,
+            columns=read_cols,
+            batch_size=large_cfg.batch_size,
+            row_group_stride=large_cfg.row_group_stride,
+            row_group_offset=large_cfg.row_group_offset,
+            max_rows=large_cfg.max_train_rows,
+            dropna_label_col=large_cfg.label_col,
+        ):
+            mask = batch[large_cfg.date_col] <= train_end
+            if mask.any():
+                yield batch[mask]
+
+    tracker.stage_start("Pass2: fit_medians")
+    fillna_medians = fit_medians_streaming(
+        _train_batches_for_median(),
+        feature_cols,
+        on_batch=tracker.make_streaming_callback("Pass2: fit_medians"),
+    )
+    tracker.stage_end("Pass2: fit_medians")
+
+    # ── Pass 3: build raw cache ──
+    raw_cache_dir = getattr(cfg.nn, "raw_cache_dir", "cache/v2_raw")
+    if getattr(cfg.runner, "smoke_test", False):
+        raw_cache_dir = "cache/v2_raw_smoke"
+
+    tracker.stage_start("Pass3: build_raw_cache")
+    raw_meta = build_raw_cache(
+        parquet_path=large_cfg.train_path,
+        feature_cols=feature_cols,
+        label_col=large_cfg.label_col,
+        id_col=str(large_cfg.id_cols[0]),
+        date_col=large_cfg.date_col,
+        time_col="timeid",
+        fillna_medians=fillna_medians,
+        train_end=int(train_end),
+        val_end=int(val_end),
+        cache_dir=raw_cache_dir,
+    )
+    tracker.stage_end("Pass3: build_raw_cache",
+                      stocks=raw_meta.n_stock, dates=raw_meta.n_date,
+                      times=raw_meta.n_time)
+
+    # ── Pass 4: build derived cache (standardization + window indices) ──
+    std_method = getattr(cfg.preprocess, "standardize_method", "rank_gauss")
+    standardizer = get_standardizer(std_method)
+
+    derived_cache_dir = getattr(cfg.nn, "derived_cache_dir", "cache/v2_derived")
+    if getattr(cfg.runner, "smoke_test", False):
+        derived_cache_dir = "cache/v2_derived_smoke"
+
+    tracker.stage_start("Pass4: build_derived_cache")
+    derived_meta = build_derived_cache(
+        raw_meta=raw_meta,
+        standardizer=standardizer,
+        standardize_method=std_method,
+        lookback=cfg.nn.lookback,
+        cross_date_windows=getattr(cfg.nn, "cross_date_windows", False),
+        cache_dir=derived_cache_dir,
+    )
+    tracker.stage_end("Pass4: build_derived_cache",
+                      train=derived_meta.train_windows,
+                      val=derived_meta.val_windows,
+                      test=derived_meta.test_windows)
+
+    # ── Build model ──
+    num_features = len(feature_cols)
+    num_ids = raw_meta.n_stock
+    id_map = raw_meta.stock_id_map
+    model = build_nn_model(cfg.nn.model_name, cfg.nn, num_ids, num_features)
+    model = cast(nn.Module, model)
+    device = get_torch_device(cfg)
+
+    tracker._emit(
+        f"[Progress] Model built (model={cfg.nn.model_name}, "
+        f"features={num_features}, ids={num_ids}, lookback={cfg.nn.lookback}, "
+        f"device={device})",
+        {"event": "model_built", "model": cfg.nn.model_name,
+         "features": num_features, "ids": num_ids, "device": str(device)},
+    )
+
+    # ── Create DataLoaders ──
+    num_workers = getattr(cfg.nn, "dataloader_workers", 4)
+    pin_mem = getattr(cfg.nn, "pin_memory", True) and torch.cuda.is_available()
+    prefetch = getattr(cfg.nn, "prefetch_factor", 4)
+
+    train_loader = make_v2_dataloader(
+        derived_meta, split="train", lookback=cfg.nn.lookback,
+        batch_size=cfg.nn.batch_size, shuffle=True,
+        num_workers=num_workers, pin_memory=pin_mem,
+        prefetch_factor=prefetch,
+    )
+    val_loader = make_v2_dataloader(
+        derived_meta, split="val", lookback=cfg.nn.lookback,
+        batch_size=cfg.nn.batch_size, shuffle=False,
+        num_workers=num_workers, pin_memory=pin_mem,
+        prefetch_factor=prefetch,
+    )
+
+    # ── Train ──
+    tracker.stage_start("Training")
+    trainer = _MemmapTorchTrainer(model, cfg, device)
+
+    def _step_cb_factory(ep):
+        return tracker.make_train_step_callback(ep, cfg.nn.epochs)
+
+    history = trainer.fit(train_loader, val_loader, on_step_factory=_step_cb_factory)
+    tracker.stage_end("Training")
+
+    # ── Evaluate on test split ──
+    do_test_eval = getattr(cfg.runner, "do_test_eval", True)
+    metrics: dict = {}
+    pred_df = pd.DataFrame()
+
+    if do_test_eval and derived_meta.test_windows > 0:
+        tracker.stage_start("Evaluate")
+        metrics = _evaluate_v2(
+            trainer, derived_meta, cfg.nn.lookback, num_features,
+            cfg.nn.batch_size, num_workers, pin_mem,
+        )
+        tracker.stage_end("Evaluate")
+
+        # Prediction DataFrame for artifact saving
+        test_loader = make_v2_dataloader(
+            derived_meta, split="test", lookback=cfg.nn.lookback,
+            batch_size=cfg.nn.batch_size, shuffle=False,
+            num_workers=num_workers, pin_memory=pin_mem,
+            prefetch_factor=prefetch,
+        )
+        pred_df = trainer.predict_loader(test_loader)
+    else:
+        tracker._emit("[Progress] Skipping test evaluation", {})
+
+    # ── Save artifacts ──
+    tracker.stage_start("Save artifacts")
+    run_dir, run_id = _make_run_dir(cfg.runner.output_dir, f"nn_{cfg.nn.model_name}")
+    model_path = run_dir / "model.pt"
+    if cfg.runner.save_model:
+        torch.save(trainer.model.state_dict(), model_path)
+    else:
+        model_path = ""
+
+    pred_path = ""
+    if do_test_eval and not pred_df.empty:
+        pred_path_obj = run_dir / "test_pred.parquet"
+        pred_df.to_parquet(pred_path_obj, index=False)
+        pred_path = str(pred_path_obj)
+
+    id_map_serializable = {str(k): v for k, v in id_map.items()}
+
+    report = {
+        "run_id": run_id,
+        "family": "nn",
+        "model_name": cfg.nn.model_name,
+        "metrics": metrics,
+        "history": {k: v[-1] if isinstance(v, list) and v else None for k, v in history.items()},
+        "model_path": str(model_path) if model_path else "",
+        "test_pred_path": pred_path,
+        "feature_cols": feature_cols,
+        "train_end": train_end,
+        "val_end": val_end,
+        "fillna_medians": {k: float(v) for k, v in fillna_medians.items()},
+        "standardize_method": std_method,
+        "data_config": asdict(cfg.data),
+        "nn_config": asdict(cfg.nn),
+        "id_map": id_map_serializable,
+        "num_ids": num_ids,
+        "pipeline_version": "v2",
+    }
+    save_json_report(str(run_dir / "meta.json"), report)
+    tracker.stage_end("Save artifacts")
+
+    # ── (Optional) Submission predict ──
+    do_submission = getattr(cfg.runner, "do_submission_predict", False)
+    if do_submission:
+        tracker._emit(
+            "[Warning] V2 submission predict requires building raw+derived cache "
+            "for test.parquet. This is not yet implemented. "
+            "Use the V1 pipeline or implement _generate_submission_v2().",
+            {"event": "warning", "msg": "v2_submission_not_implemented"},
+        )
+        # TODO: Implement _generate_submission_v2() that:
+        # 1. Builds raw cache for test.parquet (reuse fillna_medians)
+        # 2. Builds derived cache with same standardizer
+        # 3. Creates DataLoader and runs inference
+        # 4. Maps predictions back to (stockid, dateid, timeid) for submission CSV
+
+    return report
+
+
+def _evaluate_v2(trainer, derived_meta, lookback, n_features, batch_size,
+                 num_workers, pin_mem) -> dict:
+    """V2 管线的评估（含 IC/RankIC）。"""
+    from template.eval import (
+        mse_np, mae_np, r2_score_np,
+        ic_series_by_date, ic_summary,
+    )
+
+    pred_loader = make_v2_pred_dataloader(
+        derived_meta, split="test", lookback=lookback,
+        batch_size=batch_size, num_workers=num_workers, pin_memory=pin_mem,
+    )
+
+    trainer.model.eval()
+    all_preds, all_ys, all_dates = [], [], []
+    total_loss, n = 0.0, 0
+
+    with torch.no_grad():
+        for X, ids, y, dates, _ in pred_loader:
+            X = X.to(trainer.device, non_blocking=True)
+            ids = ids.to(trainer.device, non_blocking=True)
+            y_gpu = y.to(trainer.device, non_blocking=True)
+            pred = trainer.model(X, ids)
+            loss = trainer.loss_fn(pred, y_gpu)
+            total_loss += float(loss.item()) * len(X)
+            n += len(X)
+            all_preds.append(pred.detach().float().cpu().numpy())
+            all_ys.append(y.numpy())
+            all_dates.append(dates)
+
+    pred_all = np.concatenate(all_preds).reshape(-1)
+    y_all = np.concatenate(all_ys).reshape(-1)
+    dates_all = np.concatenate(all_dates)
+
+    pred_df = pd.DataFrame({"date": dates_all, "pred": pred_all, "y": y_all})
+    avg_loss = total_loss / max(n, 1)
+
+    ic_df = ic_series_by_date(pred_df, date_col="date", score_col="pred", target_col="y")
+    summary = ic_summary(ic_df)
+
+    return {
+        "loss": avg_loss,
+        "mse": mse_np(pred_all, y_all),
+        "mae": mae_np(pred_all, y_all),
+        "r2": r2_score_np(pred_all, y_all),
+        "ic": float(summary.get("ic_mean", float("nan"))),
+        "ic_ir": float(summary.get("ic_ir", float("nan"))),
+        "rankic": float(summary.get("rank_ic_mean", float("nan"))),
+        "rankic_ir": float(summary.get("rank_ic_ir", float("nan"))),
+    }
+
+
+# ── NN V1 (legacy streaming — low memory) ──────────────────────────────────
 
 def _train_nn_impl(cfg, tracker: _ProgressTracker) -> dict:
     large_cfg = cfg.data.to_large_parquet_config()
@@ -307,8 +586,12 @@ def _train_nn_impl(cfg, tracker: _ProgressTracker) -> dict:
     cache_dir = getattr(cfg.nn, "memmap_cache_dir", "cache/memmap")
     cross_date = getattr(cfg.nn, "cross_date_windows", False)
 
+    _memmap_last_t = [time.time()]
     def _memmap_progress(rg_done: int, rg_total: int, rows_written: int):
-        if rg_done % 50 == 0 or rg_done == rg_total:
+        now = time.time()
+        # Report on first stock, every 30s, or at completion
+        if rg_done == 1 or now - _memmap_last_t[0] >= 30 or rg_done == rg_total:
+            _memmap_last_t[0] = now
             tracker._emit(
                 f"[Progress]   Memmap: {rg_done}/{rg_total} stocks, "
                 f"{rows_written:,} rows written",
@@ -841,18 +1124,37 @@ def run_train(cfg) -> dict:
     if getattr(cfg.runner, "smoke_test", False):
         cfg.data.train_parquet_path = "data/train_first5days.parquet"
         cfg.data.test_parquet_path = "data/test_first5days.parquet"
+        # Use separate cache dir to avoid overwriting full-data cache
+        if hasattr(cfg.nn, "memmap_cache_dir"):
+            cfg.nn.memmap_cache_dir = "cache/smoke_test"
+        if hasattr(cfg.nn, "raw_cache_dir"):
+            cfg.nn.raw_cache_dir = "cache/v2_raw_smoke"
+        if hasattr(cfg.nn, "derived_cache_dir"):
+            cfg.nn.derived_cache_dir = "cache/v2_derived_smoke"
     if cfg.model.family in {"lgbm", "xgb"}:
         report = _train_gbdt(cfg)
     else:
         report = _train_nn(cfg)
+    # ── 自动追加到排行榜 ──
+    try:
+        append_leaderboard(report, cfg=cfg)
+    except Exception as e:
+        print(f"[Warning] 排行榜写入失败: {e}")
+
     print("[Done] train runner finished")
     print(json.dumps(report["metrics"], ensure_ascii=False, indent=2, default=str))
     return report
 
 
 def main() -> None:
-    default_family = PipelineConfig().model.family
-    cfg = _load_base_config(default_family)
+    import argparse
+    parser = argparse.ArgumentParser(description="Train NN or GBDT models")
+    parser.add_argument("--model", type=str, default=None, help="Model name (lstm, attention_gru, etc. for NN family)")
+    parser.add_argument("--family", type=str, default=None, help="Model family (nn, lgbm, xgb)")
+    args = parser.parse_args()
+    
+    default_family = args.family or PipelineConfig().model.family
+    cfg = _load_base_config(default_family, model=args.model)
     run_train(cfg)
 
 
