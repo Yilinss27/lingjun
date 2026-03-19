@@ -25,23 +25,25 @@ import torch
 import torch.nn as nn
 
 if TYPE_CHECKING:
-    from template.configs.pipeline_config import PipelineConfig
+    from template.configs.model_configs._base import NNModelConfig
 
 
 class CheckpointManager:
-    """模块化的模型回退/早停管理器；cfg 为 PipelineConfig，从 cfg.nn 读取 checkpoint 相关字段。"""
-    
-    def __init__(self, cfg: "PipelineConfig"):
-        nn = cfg.nn
-        self.cfg = cfg
-        self.strategy = nn.checkpoint_strategy
-        self.metric_name = nn.checkpoint_metric
-        self.warmup_epochs = nn.checkpoint_warmup_epochs
-        self.patience = nn.checkpoint_patience
-        self.min_delta = nn.checkpoint_min_delta
-        self.ema_alpha = nn.checkpoint_ema_alpha
-        self.save_to_disk = nn.checkpoint_save_to_disk
-        self.save_path = nn.checkpoint_save_path
+    """模块化的模型回退/早停管理器。
+
+    Args:
+        nn_cfg: NNModelConfig 实例，包含 checkpoint_* 系列字段。
+    """
+
+    def __init__(self, nn_cfg: "NNModelConfig"):
+        self.strategy = nn_cfg.checkpoint_strategy
+        self.metric_name = nn_cfg.checkpoint_metric
+        self.warmup_epochs = nn_cfg.checkpoint_warmup_epochs
+        self.patience = nn_cfg.checkpoint_patience
+        self.min_delta = nn_cfg.checkpoint_min_delta
+        self.ema_alpha = nn_cfg.checkpoint_ema_alpha
+        self.save_to_disk = nn_cfg.checkpoint_save_to_disk
+        self.save_path = nn_cfg.checkpoint_save_path
         
         # 判断指标方向：越大越好还是越小越好
         self.higher_is_better = self.metric_name in ['val_rankic', 'val_ic', 'val_r2']

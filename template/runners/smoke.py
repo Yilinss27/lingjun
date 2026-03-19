@@ -24,8 +24,8 @@ import pandas as pd
 import torch
 import torch.nn as nn
 
-from template.configs.pipeline_config import NNConfig
-from template.configs.presets import make_baseline_lgbm, make_baseline_xgb, make_baseline_nn
+from template.configs.model_configs import NNModelConfig, load_model_config
+from template.configs.pipeline_config import PipelineConfig
 from template.models.registry import NN_MODEL_REGISTRY, build_nn_model
 from template.runners.train import run_train
 
@@ -84,7 +84,7 @@ def _make_synthetic_data(root: Path, work_root: Path) -> tuple[Path, Path]:
 
 
 def _smoke_nn_builders() -> None:
-    cfg = NNConfig(
+    cfg = NNModelConfig(
         model_name="lstm",
         emb_dim=4,
         hidden=32,
@@ -131,31 +131,37 @@ def _smoke_runners(template_root: Path, train_path: Path, test_path: Path, work_
         cfg.data.batch_size = 1500
         cfg.runner.predict_batch_size = 1500
 
-    cfg_lgbm = make_baseline_lgbm()
+    cfg_lgbm = PipelineConfig()
+    cfg_lgbm.model_name = "lgbm"
+    cfg_lgbm.preprocess.fillna_strategy = "none"
+    cfg_lgbm.preprocess.standardize = False
     _apply_smoke_data(cfg_lgbm)
     cfg_lgbm.runner.output_dir = str(out_root / "lgbm")
     cfg_lgbm.runner.save_test_pred = False
-    cfg_lgbm.model.params["n_estimators"] = 30
-    run_train(cfg_lgbm)
+    mcfg_lgbm = load_model_config("lgbm")
+    mcfg_lgbm.params["n_estimators"] = 30
+    run_train(cfg_lgbm, mcfg_lgbm)
 
     try:
-        cfg_xgb = make_baseline_xgb()
+        cfg_xgb = PipelineConfig()
+        cfg_xgb.model_name = "xgb"
+        cfg_xgb.preprocess.fillna_strategy = "none"
+        cfg_xgb.preprocess.standardize = False
         _apply_smoke_data(cfg_xgb)
         cfg_xgb.runner.output_dir = str(out_root / "xgb")
         cfg_xgb.runner.save_test_pred = False
-        cfg_xgb.model.params["n_estimators"] = 30
-        run_train(cfg_xgb)
+        mcfg_xgb = load_model_config("xgb")
+        mcfg_xgb.params["n_estimators"] = 30
+        run_train(cfg_xgb, mcfg_xgb)
     except Exception as exc:
         print(f"[Smoke] xgb skipped/fail: {exc}")
 
-    cfg_nn = make_baseline_nn()
+    cfg_nn = PipelineConfig()
+    cfg_nn.model_name = "lstm"
     _apply_smoke_data(cfg_nn)
     cfg_nn.runner.output_dir = str(out_root / "nn")
-    cfg_nn.nn.model_name = "lstm"
-    cfg_nn.nn.lookback = 4
-    cfg_nn.nn.epochs = 1
-    cfg_nn.nn.batch_size = 64
-    run_train(cfg_nn)
+    mcfg_nn = NNModelConfig(model_name="lstm", lookback=4, epochs=1, batch_size=64)
+    run_train(cfg_nn, mcfg_nn)
 
 
 def main() -> None:

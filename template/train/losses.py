@@ -20,7 +20,7 @@ import torch
 import torch.nn.functional as F
 
 if TYPE_CHECKING:
-    from template.configs.pipeline_config import PipelineConfig
+    from template.configs.model_configs._base import NNModelConfig
 
 # 需按日 batch 训练的损失（torch_trainer 等会据此判断）
 IC_LOSS_NAMES = ("pearson_ic", "sigmoid_rankic", "neuralsort_rankic")
@@ -38,8 +38,8 @@ def pearson_ic_loss(pred: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     直接计算预测值与真实值的Pearson相关系数，取负值作为损失。
     完全可导，适合作为IC优化的baseline。
     """
-    pred = pred.squeeze()
-    y = y.squeeze()
+    pred = pred.squeeze(-1)
+    y = y.squeeze(-1)
     
     if len(pred) < 3:
         return torch.tensor(0.0, device=pred.device, requires_grad=True)
@@ -190,14 +190,21 @@ def neuralsort_rankic_loss(pred: torch.Tensor, y: torch.Tensor, tau: float = 1.0
     return -corr
 
 
-def get_loss_fn(cfg: "PipelineConfig") -> Callable[[torch.Tensor, torch.Tensor], torch.Tensor]:
-    """根据配置返回损失函数。cfg 为 PipelineConfig，从 cfg.model.objective 与 cfg.nn 读取参数。"""
-    task_type = cfg.model.objective
-    nn = cfg.nn
-    loss_name = nn.loss_name
-    huber_delta = nn.huber_delta
-    tau = nn.tau
-    softrank_tau = nn.softrank_tau
+def get_loss_fn(
+    nn_cfg: "NNModelConfig",
+    objective: str = "regression",
+) -> Callable[[torch.Tensor, torch.Tensor], torch.Tensor]:
+    """根据模型配置返回损失函数。
+
+    Args:
+        nn_cfg: NNModelConfig 实例，包含 loss_name / huber_delta / tau / softrank_tau
+        objective: 任务类型 "regression" | "classification"
+    """
+    task_type = objective
+    loss_name = nn_cfg.loss_name
+    huber_delta = nn_cfg.huber_delta
+    tau = nn_cfg.tau
+    softrank_tau = nn_cfg.softrank_tau
 
     def quantile_loss(pred: torch.Tensor, y: torch.Tensor, tau_val: float = 0.9) -> torch.Tensor:
         error = y - pred

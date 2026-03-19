@@ -1,8 +1,13 @@
 # pyright: reportMissingImports=false
+"""管线配置（模型无关参数）。
+
+模型相关参数（结构/训练/损失/checkpoint）在 model_configs/ 下对应文件中设置。
+运行时通过 load_model_config(model_name) 加载。
+"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import Literal
 
 from template.data.parquet_adapter import LargeParquetConfig
 
@@ -14,20 +19,18 @@ class DataConfig:
     label_col: str = "LabelA"
     id_cols: tuple[str, ...] = ("stockid", "dateid", "timeid", "exchangeid")
     date_col: str = "dateid"
-    # feature_mode参数用于指定特征选择模式，具体含义如下：
-    # "all"：使用所有可用特征; "no_missing"：只使用无缺失值的特征; "top_ic"：使用IC（信息系数）排名前列的特征;"custom"：使用用户自定义的特征列表（custom_features字段给出）
+    # feature_mode: "all" 全部特征 | "no_missing" 无缺失 | "top_ic" IC 排名 | "custom" 自定义
     feature_mode: Literal["all", "no_missing", "top_ic", "custom"] = "all"
     custom_features: list[str] = field(default_factory=list)
 
-    train_ratio: float = 0.75   # 训练集 75%（最多数据学习）
-    val_ratio: float = 0.10    # 验证集 10%（最少，只用于早停和模型选择）
-                                # 测试集 = 剩余 15%（评估最终泛化能力）
+    train_ratio: float = 0.75   # 训练集 75%
+    val_ratio: float = 0.10     # 验证集 10%（测试集 = 剩余 15%）
 
-    max_train_rows: int | None = None    # 训练集最多读取的行数，None表示不限制
-    max_test_rows: int | None = None          # 测试集最多读取的行数，None表示不限制
-    batch_size: int = 200_000                 # 读取数据时每批次的最大行数
-    row_group_stride: int = 1                 # parquet row group 步长度，等于1表示每次加载一个row group
-    row_group_offset: int = 0                 # 读取parquet时跳过前多少个row group
+    max_train_rows: int | None = None
+    max_test_rows: int | None = None
+    batch_size: int = 200_000                 # Parquet 读取批大小
+    row_group_stride: int = 1
+    row_group_offset: int = 0
 
     def to_large_parquet_config(self) -> LargeParquetConfig:
         return LargeParquetConfig(
@@ -52,12 +55,8 @@ class DataConfig:
 class PreprocessConfig:
     fillna_strategy: Literal["none", "zero", "median"] = "median"
     # ── V2 管线标准化配置 ──
-    # standardize_method: 标准化方法（用于 V2 数据管线）
-    #   "rank_gauss"          : 截面 RankGauss（推荐，按 dateid+timeid 分组做排名+逆正态变换）
-    #   "global_zscore"       : 全量 Z-Score（旧方法，用训练集全量均值/方差）
-    #   "none"                : 不做标准化
     standardize_method: Literal["rank_gauss", "global_zscore", "none"] = "rank_gauss"
-    # ── 以下为旧 V1 管线保留字段（V2 管线不使用） ──
+    # ── 以下为旧 V1 管线保留字段 ──
     standardize: bool = True
     standardize_mode: Literal["none", "global", "cross_section", "date", "time_rolling"] = "global"
     clip_quantile: float | None = None
@@ -65,137 +64,59 @@ class PreprocessConfig:
 
 
 @dataclass
-class ModelConfig:
-    family: Literal["lgbm", "xgb", "nn"] = "nn"              # 由 preset 设置
-    objective: Literal["regression", "ranking"] = "regression"  # 由 preset 设置
-    params: dict[str, Any] = field(default_factory=dict)        # GBDT 超参, 由 preset 设置
-
-
-@dataclass
 class RunnerConfig:
     seed: int = 42
     output_dir: str = "res/pipeline"
-    save_model: bool = True       # 是否保存模型权重/参数（model.pkl 或 model.pt）
+    save_model: bool = True
     save_test_pred: bool = True
     predict_batch_size: int = 1_000_000
-    smoke_test: bool = False      # 为 True 时使用 train_first5days.parquet 做冒烟
+    smoke_test: bool = False
 
     # ── 模块独立开关 ──
-    # do_test_eval: 训练后在内部测试集（train.parquet 切出的最后15%）上评估
-    #   True  → 评估并打印 MSE/MAE/R²/IC/RankIC（用于模型选型）
-    #   False → 跳过，节省时间（模型已选定后可关闭）
     do_test_eval: bool = True
-
-    # do_submission_predict: 训练后对 test.parquet（比赛测试集）做预测并生成提交文件
-    #   True  → 生成 submission_xxx.csv，供上传 Kaggle
-    #   False → 跳过（调参阶段不需要生成提交文件）
     do_submission_predict: bool = False
+
+    # ── 设备 / 数据加载（模型无关）──
+    device: Literal["auto", "cpu", "gpu"] = "auto"
+    dataloader_workers: int = 2      # 降至 2：在 RAM 99% 场景下减少 worker 进程内存开销 (~1GB)，为 page cache 让出空间
+    prefetch_factor: int = 2          # 降至 2：减少 prefetch 缓冲区内存 (~400MB)，配合 ChunkedShuffleSampler 顺序 I/O 已足够
+    pin_memory: bool = True
+
+    # ── 缓存目录 ──
+    memmap_cache_dir: str = "cache/memmap"
+    raw_cache_dir: str = "cache/raw"
+    derived_cache_dir: str = "cache/derived"
+
+    # ── 数据管线版本 ──
+    use_v2_pipeline: bool = True
+    cross_date_windows: bool = False
 
 
 @dataclass
 class ProgressConfig:
     enabled: bool = True
-    every_n_batches: int = 10       # 流式阶段（预处理/样本构建）每隔多少 batch 触发一次心跳
-    every_n_steps: int = 50         # 训练 epoch 内每隔多少 step 触发一次心跳
-    min_interval_sec: float = 10.0  # 两次心跳之间的最小时间间隔（秒）
-    jsonl_path: str = ""            # 非空时同步写入 JSONL 文件，便于外部 tail 监控
-
-
-@dataclass
-class NNConfig:
-    # ── 模型结构 ──
-    model_name: str = "lstm"
-    lookback: int = 32
-    emb_dim: int = 0
-    hidden: int = 128
-    layers: int = 2
-    drop_out: float = 0.2
-
-    # ── 损失 ──
-    loss_name: str = "mse"
-    huber_delta: float = 1.0
-    tau: float = 0.9
-    softrank_tau: float = 1.0
-
-    # ── 优化器 / 训练 ──
-    lr: float = 1e-3
-    weight_decay: float = 1e-5
-    batch_size: int = 256
-    epochs: int = 12
-
-    # ── 设备 / 性能 ──
-    device: Literal["auto", "cpu", "gpu"] = "auto"
-    use_amp: bool = True
-    amp_dtype: str = "bfloat16"
-    compile_model: bool = False
-    compile_mode: str = "reduce-overhead"
-    dataloader_workers: int = 4
-    prefetch_factor: int = 4
-    pin_memory: bool = True
-
-    # ── Memmap 数据管线 ──
-    memmap_cache_dir: str = "cache/memmap"          # V1 旧管线缓存目录
-    raw_cache_dir: str = "cache/v2_raw"             # V2 raw cache 目录
-    derived_cache_dir: str = "cache/v2_derived"     # V2 derived cache 目录
-    cross_date_windows: bool = False
-    use_v2_pipeline: bool = True                    # 启用 V2 数据管线
-
-    # ── Checkpoint / 早停 ──
-    checkpoint_enabled: bool = False
-    checkpoint_metric: str = "val_loss"
-    checkpoint_strategy: str = "combined"
-    checkpoint_patience: int = 16
-    checkpoint_warmup_epochs: int = 16
-    checkpoint_min_delta: float = 0.0
-    checkpoint_ema_alpha: float = 0.0
-    checkpoint_save_to_disk: bool = False
-    checkpoint_save_path: str = "checkpoints/"
-
-
-def nn_config_from_meta(d: dict) -> NNConfig:
-    """从 meta['nn_config'] 字典恢复 NNConfig，供 predict 端使用。"""
-    return NNConfig(
-        model_name=str(d.get("model_name", "lstm")),
-        lookback=int(d.get("lookback", 32)),
-        emb_dim=int(d.get("emb_dim", 0)),
-        hidden=int(d.get("hidden", 128)),
-        layers=int(d.get("layers", 2)),
-        drop_out=float(d.get("drop_out", 0.2)),
-        loss_name=str(d.get("loss_name", "mse")),
-        huber_delta=float(d.get("huber_delta", 1.0)),
-        tau=float(d.get("tau", 0.9)),
-        softrank_tau=float(d.get("softrank_tau", 1.0)),
-        lr=float(d.get("lr", 1e-3)),
-        weight_decay=float(d.get("weight_decay", 1e-5)),
-        batch_size=int(d.get("batch_size", 512)),
-        epochs=int(d.get("epochs", 12)),
-        device=d.get("device", "auto") if isinstance(d.get("device"), str) else "auto",
-        use_amp=bool(d.get("use_amp", True)),
-        amp_dtype=str(d.get("amp_dtype", "bfloat16")),
-        compile_model=bool(d.get("compile_model", False)),
-        compile_mode=str(d.get("compile_mode", "reduce-overhead")),
-        dataloader_workers=int(d.get("dataloader_workers", 4)),
-        prefetch_factor=int(d.get("prefetch_factor", 4)),
-        pin_memory=bool(d.get("pin_memory", True)),
-        checkpoint_enabled=bool(d.get("checkpoint_enabled", False)),
-        checkpoint_metric=str(d.get("checkpoint_metric", "val_loss")),
-        checkpoint_strategy=str(d.get("checkpoint_strategy", "combined")),
-        checkpoint_patience=int(d.get("checkpoint_patience", 16)),
-        checkpoint_warmup_epochs=int(d.get("checkpoint_warmup_epochs", 16)),
-        checkpoint_min_delta=float(d.get("checkpoint_min_delta", 0.0)),
-        checkpoint_ema_alpha=float(d.get("checkpoint_ema_alpha", 0.0)),
-        checkpoint_save_to_disk=bool(d.get("checkpoint_save_to_disk", False)),
-        checkpoint_save_path=str(d.get("checkpoint_save_path", "checkpoints/")),
-        memmap_cache_dir=str(d.get("memmap_cache_dir", "cache/memmap")),
-        cross_date_windows=bool(d.get("cross_date_windows", False)),
-    )
+    every_n_batches: int = 10
+    every_n_steps: int = 50
+    min_interval_sec: float = 10.0
+    jsonl_path: str = ""
 
 
 @dataclass
 class PipelineConfig:
+    """管线配置（模型无关参数）。
+
+    使用方式：
+        1. 在此处设置 model_name 选择模型
+        2. 在 model_configs/<model_name>.py 中设置模型参数
+        3. 运行 train.py
+    """
     data: DataConfig = field(default_factory=DataConfig)
     preprocess: PreprocessConfig = field(default_factory=PreprocessConfig)
-    model: ModelConfig = field(default_factory=ModelConfig)
     runner: RunnerConfig = field(default_factory=RunnerConfig)
-    nn: NNConfig = field(default_factory=NNConfig)
     progress: ProgressConfig = field(default_factory=ProgressConfig)
+
+    # ── 模型选择 ──
+    # 对应 template/configs/model_configs/ 下的文件名
+    # NN:   "autoformer_encoder", "lstm", "attention_gru"
+    # GBDT: "lgbm", "xgb"
+    model_name: str = "autoformer_encoder"
